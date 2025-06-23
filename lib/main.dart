@@ -212,12 +212,14 @@ class _BookingContainerState extends State<BookingContainer> {
 
   Future<void> _loadAppVersion() async {
     try {
+      const envVersion = String.fromEnvironment('VERSION', defaultValue: '');
       final packageInfo = await PackageInfo.fromPlatform();
-      setState(() {
-        _appVersion = 'v${packageInfo.version} (${packageInfo.buildNumber})';
-      });
+
+      setState(() => _appVersion =
+          '${envVersion.isNotEmpty ? 'v$envVersion' : 'v${packageInfo.version}'} (${packageInfo.buildNumber})');
     } catch (e) {
       print('Error loading app version: $e');
+      setState(() => _appVersion = 'v0.0.0 (0)');
     }
   }
 

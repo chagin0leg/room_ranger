@@ -26,15 +26,11 @@ jobs:
           echo "version=$VERSION_NUMBER" >> $GITHUB_OUTPUT
           echo "tag=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Update pubspec.yaml version
-        run: |
-          sed -i "s/version: .*/version: ${{ steps.version.outputs.version_number }}+${{ steps.version.outputs.version_number }}/" pubspec.yaml
-
       - name: Install dependencies
         run: flutter pub get
 
       - name: Build web
-        run: flutter build web --release --base-href /room_ranger/
+        run: flutter build web --release --base-href /room_ranger/ --dart-define=VERSION=${{ steps.version.outputs.version_number }}
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
