@@ -1,4 +1,4 @@
-name: Deploy Flutter Web to GitHub Pages
+name: Create Release
 
 on:
   push:
@@ -6,17 +6,12 @@ on:
       - 'v*'
 
 jobs:
-  build-and-deploy:
+  create-release:
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
 
       - name: Extract version from tag
         id: version
@@ -25,22 +20,6 @@ jobs:
           VERSION_NUMBER=${VERSION#v}
           echo "version=$VERSION_NUMBER" >> $GITHUB_OUTPUT
           echo "tag=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Update pubspec.yaml version
-        run: |
-          sed -i "s/version: .*/version: ${{ steps.version.outputs.version_number }}+${{ steps.version.outputs.version_number }}/" pubspec.yaml
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Build web
-        run: flutter build web --release --base-href /room_ranger/
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build/web
 
       - name: Create Release
         uses: actions/create-release@v1
@@ -58,5 +37,8 @@ jobs:
             ### Технические детали
             - Версия сборки: ${{ steps.version.outputs.version_number }}
             - Дата сборки: ${{ github.event.head_commit.timestamp }}
+            
+            ### Скачать
+            - [Веб-версия](https://${{ github.repository_owner }}.github.io/room_ranger/)
           draft: false
-          prerelease: false
+          prerelease: false 

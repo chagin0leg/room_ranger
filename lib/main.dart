@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:room_ranger/utils/date_utils.dart';
 import 'package:room_ranger/utils/google_calendar_service.dart';
 import 'package:room_ranger/utils/telegram_utils.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class CalendarCell extends StatefulWidget {
   final int month;
@@ -200,11 +201,24 @@ class _BookingContainerState extends State<BookingContainer> {
   final Set<int> _selectedDays = {};
   Set<DateTime> _bookedDates = {};
   int _selectedMonth = DateTime.now().month;
+  String _appVersion = '';
 
   @override
   void initState() {
     super.initState();
     _loadBookedDates();
+    _loadAppVersion();
+  }
+
+  Future<void> _loadAppVersion() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      setState(() {
+        _appVersion = 'v${packageInfo.version} (${packageInfo.buildNumber})';
+      });
+    } catch (e) {
+      print('Error loading app version: $e');
+    }
   }
 
   Future<void> _loadBookedDates() async {
@@ -280,6 +294,17 @@ class _BookingContainerState extends State<BookingContainer> {
           onDateSelected: _onDateSelected,
           bookedDates: _bookedDates,
         ),
+        if (_appVersion.isNotEmpty)
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text(
+              _appVersion,
+              style: const TextStyle(
+                fontSize: 10,
+                color: Colors.grey,
+              ),
+            ),
+          ),
       ],
     );
   }
