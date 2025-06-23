@@ -1,8 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'package:room_ranger/utils/date_utils.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:room_ranger/utils/google_calendar_service.dart';
+import 'package:room_ranger/utils/telegram_utils.dart';
 
 class CalendarCell extends StatefulWidget {
   final int month;
@@ -238,44 +237,6 @@ class _BookingContainerState extends State<BookingContainer> {
         _ => 'Доброй ночи!'
       };
 
-  String _getBookingMessage() {
-    if (_selectedDays.isEmpty) return '';
-
-    final sortedDays = _selectedDays.toList()..sort();
-
-    // Group consecutive days into intervals
-    final intervals = <List<int>>[];
-    var currentInterval = <int>[sortedDays.first];
-
-    for (var i = 1; i < sortedDays.length; i++) {
-      if (sortedDays[i] == sortedDays[i - 1] + 1) {
-        currentInterval.add(sortedDays[i]);
-      } else {
-        intervals.add(List.from(currentInterval));
-        currentInterval = [sortedDays[i]];
-      }
-    }
-    intervals.add(currentInterval);
-
-    // Format intervals
-    final formattedIntervals = intervals
-        .map((interval) => interval.length == 1
-            ? _formatDate(interval.first, _selectedMonth)
-            : 'с ${_formatDate(interval.first, _selectedMonth)} '
-                'по ${_formatDate(interval.last, _selectedMonth)}')
-        .toList();
-
-    // Join intervals with proper conjunctions
-    if (formattedIntervals.length == 1) {
-      final interval = formattedIntervals.first;
-      final hasInterval = interval.startsWith('с');
-      return '${_getGreeting()}\nХочу забронировать номер ${hasInterval ? 'на даты ' : 'на '}$interval';
-    }
-
-    final lastInterval = formattedIntervals.removeLast();
-    return '${_getGreeting()}\nХочу забронировать номер на даты ${formattedIntervals.join(", ")} и $lastInterval';
-  }
-
   @override
   Widget build(BuildContext context) {
     final hasSelectedDates = _selectedDays.isNotEmpty;
@@ -293,10 +254,14 @@ class _BookingContainerState extends State<BookingContainer> {
                     const Text('Выберите даты в календаре'),
                   if (hasSelectedDates)
                     ElevatedButton(
-                      onPressed: () {
-                        final message = _getBookingMessage();
-                        final url = 'https://t.me/MyZhiraf?text=$message';
-                        launchUrl(Uri.parse(url));
+                      onPressed: () async {
+                        final message = buildTelegramBookingMessage(
+                          selectedDays: _selectedDays,
+                          selectedMonth: _selectedMonth,
+                          formatDate: _formatDate,
+                          getGreeting: _getGreeting,
+                        );
+                        await sendTelegramBookingMessage(message);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
