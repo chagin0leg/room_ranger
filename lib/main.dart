@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:room_ranger/utils/date_utils.dart';
 import 'package:room_ranger/utils/google_calendar_service.dart';
 import 'package:room_ranger/utils/telegram_utils.dart';
@@ -211,16 +212,16 @@ class _BookingContainerState extends State<BookingContainer> {
   }
 
   Future<void> _loadAppVersion() async {
+    String version = '0.0.0', buildNumber = 'dev';
     try {
-      const envVersion = String.fromEnvironment('VERSION', defaultValue: '');
       final packageInfo = await PackageInfo.fromPlatform();
-
-      setState(() => _appVersion =
-          '${envVersion.isNotEmpty ? 'v$envVersion' : 'v${packageInfo.version}'} (${packageInfo.buildNumber})');
+      version = packageInfo.version;
+      buildNumber = packageInfo.buildNumber;
+      if (kDebugMode) buildNumber += '+dev';
     } catch (e) {
       print('Error loading app version: $e');
-      setState(() => _appVersion = 'v0.0.0 (0)');
     }
+    setState(() => _appVersion = 'v$version ($buildNumber)');
   }
 
   Future<void> _loadBookedDates() async {

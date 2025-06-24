@@ -2,8 +2,7 @@ name: Deploy Flutter Web to GitHub Pages
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [main]
 
 jobs:
   build-and-deploy:
@@ -18,19 +17,37 @@ jobs:
         with:
           channel: stable
 
-      - name: Extract version from tag
+      - name: Auto increment build number
         id: version
         run: |
-          VERSION=${GITHUB_REF#refs/tags/}
-          VERSION_NUMBER=${VERSION#v}
-          echo "version=$VERSION_NUMBER" >> $GITHUB_OUTPUT
-          echo "tag=$VERSION" >> $GITHUB_OUTPUT
+          # Читаем текущую версию из pubspec.yaml
+          CURRENT_VERSION=$(grep 'version:' pubspec.yaml | sed 's/version: //')
+          VERSION_PART=$(echo $CURRENT_VERSION | cut -d'+' -f1)
+          
+          # Получаем общее количество коммитов в репозитории
+          TOTAL_COMMITS=$(git rev-list --count HEAD)
+          
+          # Используем количество коммитов как build number
+          NEW_VERSION="$VERSION_PART+$TOTAL_COMMITS"
+          
+          # Обновляем pubspec.yaml только если версия изменилась
+          if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
+            sed -i "s/version: $CURRENT_VERSION/version: $NEW_VERSION/" pubspec.yaml
+            echo "Updated version from $CURRENT_VERSION to $NEW_VERSION"
+          else
+            echo "Version unchanged: $CURRENT_VERSION"
+          fi
+          
+          echo "version=$VERSION_PART" >> $GITHUB_OUTPUT
+          echo "build=$TOTAL_COMMITS" >> $GITHUB_OUTPUT
+          echo "full_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "total_commits=$TOTAL_COMMITS" >> $GITHUB_OUTPUT
 
       - name: Install dependencies
         run: flutter pub get
 
       - name: Build web
-        run: flutter build web --release --base-href /room_ranger/ --dart-define=VERSION=${{ steps.version.outputs.version_number }}
+        run: flutter build web --release --base-href /room_ranger/ --dart-define=VERSION=${{ steps.version.outputs.version }}
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
@@ -43,16 +60,29 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          release_name: Room Ranger ${{ steps.version.outputs.version_number }}
+          tag_name: v${{ steps.version.outputs.version }}-${{ steps.version.outputs.build }}
+          release_name: Room Ranger ${{ steps.version.outputs.version }} (${{ steps.version.outputs.build }})
           body: |
-            ## Что нового в версии ${{ steps.version.outputs.version_number }}
+            ## Автоматический релиз
             
-            ### Изменения
-            - Обновления и улучшения
+            ### Версия
+            - **Версия:** ${{ steps.version.outputs.version }}
+            - **Сборка:** ${{ steps.version.outputs.build }}
+            - **Полная версия:** ${{ steps.version.outputs.full_version }}
             
             ### Технические детали
-            - Версия сборки: ${{ steps.version.outputs.version_number }}
             - Дата сборки: ${{ github.event.head_commit.timestamp }}
+            - Коммит: ${{ github.sha }}
+            
+            ### Скачать
+            - [Веб-версия](https://${{ github.repository_owner }}.github.io/room_ranger/)
           draft: false
           prerelease: false
+
+      - name: Commit version update
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add pubspec.yaml
+          git commit -m "Update build number to ${{ steps.version.outputs.build }} (total commits: ${{ steps.version.outputs.total_commits }})" || exit 0
+          git push 
