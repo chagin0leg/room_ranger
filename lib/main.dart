@@ -9,7 +9,7 @@ import 'package:room_ranger/utils/styles.dart';
 class CalendarCell extends StatefulWidget {
   final int month;
   final int year;
-  final Function(int) onDateSelected;
+  final Function(DateTime) onDateSelected;
   final Set<DateTime> bookedDates;
 
   const CalendarCell({
@@ -25,7 +25,7 @@ class CalendarCell extends StatefulWidget {
 }
 
 class _CalendarCellState extends State<CalendarCell> {
-  final Set<int> _selectedDays = {};
+  final Set<DateTime> _selectedDays = {};
 
   Widget _month() => Text(
         getMonthName(widget.month, GrammaticalCase.nominative),
@@ -46,8 +46,12 @@ class _CalendarCellState extends State<CalendarCell> {
         date.day == day);
   }
 
+  bool _isDateSelected(int day) {
+    return _selectedDays.contains(DateTime(widget.year, widget.month, day));
+  }
+
   Widget _buildDayNumber(int dayNumber) {
-    final isSelected = _selectedDays.contains(dayNumber);
+    final isSelected = _isDateSelected(dayNumber);
     final isBooked = _isDateBooked(dayNumber);
     final color = isBooked
         ? 0xFFed8f75
@@ -57,11 +61,12 @@ class _CalendarCellState extends State<CalendarCell> {
 
     return GestureDetector(
       onTap: () {
-        if (!isBooked) return;
+        if (isBooked) return;
+        final date = DateTime(widget.year, widget.month, dayNumber);
         setState(() => (isSelected)
-            ? _selectedDays.remove(dayNumber)
-            : _selectedDays.add(dayNumber));
-        widget.onDateSelected(dayNumber);
+            ? _selectedDays.remove(date)
+            : _selectedDays.add(date));
+        widget.onDateSelected(date);
       },
       child: Stack(
         alignment: Alignment.center,
@@ -157,7 +162,7 @@ class BookingContainer extends StatefulWidget {
 }
 
 class _BookingContainerState extends State<BookingContainer> {
-  final Set<int> _selectedDays = {};
+  final Set<DateTime> _selectedDays = {};
   Set<DateTime> _bookedDates = {};
   int _selectedMonth = DateTime.now().month;
   String _appVersion = '';
@@ -191,19 +196,19 @@ class _BookingContainerState extends State<BookingContainer> {
     }
   }
 
-  void _onDateSelected(int day, int month) {
+  void _onDateSelected(DateTime date) {
     setState(() {
-      if (_selectedDays.contains(day)) {
-        _selectedDays.remove(day);
+      if (_selectedDays.contains(date)) {
+        _selectedDays.remove(date);
       } else {
-        _selectedDays.add(day);
-        _selectedMonth = month;
+        _selectedDays.add(date);
+        _selectedMonth = date.month;
       }
     });
   }
 
-  String _formatDate(int day, int month) =>
-      '$day ${getMonthName(month, GrammaticalCase.genitive)}';
+  String _formatDate(DateTime date) =>
+      '${date.day} ${getMonthName(date.month, GrammaticalCase.genitive)}';
 
   String _getGreeting() => switch (DateTime.now().hour) {
         >= 5 && < 12 => 'Доброе утро!',
@@ -261,7 +266,7 @@ class _BookingContainerState extends State<BookingContainer> {
 }
 
 class TableContainer extends StatelessWidget {
-  final Function(int, int) onDateSelected;
+  final Function(DateTime) onDateSelected;
   final Set<DateTime> bookedDates;
   const TableContainer({
     super.key,
@@ -295,8 +300,8 @@ class TableContainer extends StatelessWidget {
                           child: CalendarCell(
                             month: monthIndex + 1,
                             year: DateTime.now().year,
-                            onDateSelected: (day) =>
-                                onDateSelected(day, monthIndex + 1),
+                            onDateSelected: (date) =>
+                                onDateSelected(date),
                             bookedDates: bookedDates,
                           ),
                         ),
