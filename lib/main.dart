@@ -5,6 +5,31 @@ import 'package:room_ranger/utils/google_calendar_service.dart';
 import 'package:room_ranger/utils/telegram_utils.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+const double baseWidth = 480;
+const double aspectRatio = 85.6 / 53.98;
+const double baseHeight = baseWidth * aspectRatio;
+
+const monthTextStyle = TextStyle(
+  fontSize: baseWidth / 100 * 2.5,
+  fontWeight: FontWeight.bold,
+);
+const weekdayTextStyle = TextStyle(
+  fontSize: baseWidth / 100 * 2,
+  fontWeight: FontWeight.bold,
+);
+const dayTextStyle = TextStyle(
+  fontSize: baseWidth / 100 * 1.8,
+  color: Colors.black,
+);
+const buttonTextStyle = TextStyle(
+  fontSize: baseWidth / 100 * 3,
+  color: Colors.white,
+);
+const versionTextStyle = TextStyle(
+  fontSize: baseWidth / 100 * 2,
+  color: Color(0xFF9E9E9E),
+);
+
 class CalendarCell extends StatefulWidget {
   final int month;
   final int year;
@@ -28,15 +53,13 @@ class _CalendarCellState extends State<CalendarCell> {
 
   Widget _month() => Text(
         getMonthName(widget.month, GrammaticalCase.nominative),
-        style: const TextStyle(fontWeight: FontWeight.bold),
+        style: monthTextStyle,
       );
 
   Widget _dayWeek() => Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
-            .map((day) => Text(day,
-                style:
-                    const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)))
+            .map((day) => Text(day, style: weekdayTextStyle))
             .toList(),
       );
 
@@ -50,45 +73,55 @@ class _CalendarCellState extends State<CalendarCell> {
   Widget _buildDayNumber(int dayNumber) {
     final isSelected = _selectedDays.contains(dayNumber);
     final isBooked = _isDateBooked(dayNumber);
+    final color = isBooked
+        ? 0xFFed8f75
+        : isSelected
+            ? 0xFFd2dfb3
+            : 0x00000000;
 
     return GestureDetector(
-      onTap: isBooked
-          ? null
-          : () {
-              setState(() => (isSelected)
-                  ? _selectedDays.remove(dayNumber)
-                  : _selectedDays.add(dayNumber));
-              widget.onDateSelected(dayNumber);
-            },
+      onTap: () {
+        if (!isBooked) return;
+        setState(() => (isSelected)
+            ? _selectedDays.remove(dayNumber)
+            : _selectedDays.add(dayNumber));
+        widget.onDateSelected(dayNumber);
+      },
       child: Stack(
         alignment: Alignment.center,
         children: [
-          SizedBox.square(
-            dimension: 16,
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isSelected ? Colors.green : Colors.transparent,
-                  width: 1,
-                ),
-              ),
+          Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Color(color),
             ),
           ),
           Text(
             dayNumber.toString(),
-            style: TextStyle(
-              fontSize: 8,
-              color: isBooked ? Colors.red : Colors.black,
-            ),
+            style: dayTextStyle,
           ),
-          if (isBooked)
-            const SizedBox.square(
-              dimension: 12,
-              child: CustomPaint(painter: CrossPainter()),
-            ),
         ],
       ),
+    );
+  }
+
+  Widget _buildWeeks(int daysInMonth, int firstWeekday) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var week = 0; week < 6; week++)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: List.generate(7, (dayIndex) {
+              final dayNumber = week * 7 + dayIndex - firstWeekday + 2;
+              return (dayNumber < 1 || dayNumber > daysInMonth)
+                  ? const SizedBox.square(dimension: 16)
+                  : _buildDayNumber(dayNumber);
+            }),
+          ),
+      ],
     );
   }
 
@@ -101,57 +134,15 @@ class _CalendarCellState extends State<CalendarCell> {
     return Container(
       padding: const EdgeInsets.all(2),
       child: Column(
-        spacing: 4,
         mainAxisSize: MainAxisSize.min,
         children: [
           _month(),
           _dayWeek(),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (var week = 0; week < 6; week++)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: List.generate(7, (dayIndex) {
-                    final dayNumber = week * 7 + dayIndex - firstWeekday + 2;
-                    return (dayNumber < 1 || dayNumber > daysInMonth)
-                        ? const SizedBox.square(dimension: 16)
-                        : _buildDayNumber(dayNumber);
-                  }),
-                ),
-            ],
-          ),
+          _buildWeeks(daysInMonth, firstWeekday),
         ],
       ),
     );
   }
-}
-
-class CrossPainter extends CustomPainter {
-  const CrossPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.red
-      ..strokeWidth = 1.5
-      ..style = PaintingStyle.stroke;
-
-    // Рисуем крестик по диагоналям контейнера
-    canvas.drawLine(
-      const Offset(0, 0),
-      Offset(size.width, size.height),
-      paint,
-    );
-    canvas.drawLine(
-      Offset(0, size.height),
-      Offset(size.width, 0),
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class MainApp extends StatelessWidget {
@@ -160,31 +151,21 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: MediaQuery(
-        data: const MediaQueryData(textScaler: TextScaler.linear(1.0)),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return Center(
-              child: FittedBox(
-                fit: BoxFit.contain,
-                child: SizedBox(
-                  width: constraints.maxWidth,
-                  height: constraints.maxWidth * 85.6 / 53.98,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: const Scaffold(
-                      body: MediaQuery(
-                        data: MediaQueryData(
-                          textScaler: TextScaler.linear(1.0),
-                        ),
-                        child: BookingContainer(),
-                      ),
-                    ),
-                  ),
+      home: Scaffold(
+        body: Center(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: Center(
+              child: SizedBox(
+                width: baseWidth,
+                height: baseHeight,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: const BookingContainer(),
                 ),
               ),
-            );
-          },
+            ),
+          ),
         ),
       ),
     );
@@ -192,8 +173,9 @@ class MainApp extends StatelessWidget {
 }
 
 class BookingContainer extends StatefulWidget {
-  const BookingContainer({super.key});
-
+  const BookingContainer({
+    super.key,
+  });
   @override
   State<BookingContainer> createState() => _BookingContainerState();
 }
@@ -256,8 +238,6 @@ class _BookingContainerState extends State<BookingContainer> {
 
   @override
   Widget build(BuildContext context) {
-    final hasSelectedDates = _selectedDays.isNotEmpty;
-
     return Column(
       children: [
         Expanded(
@@ -267,27 +247,24 @@ class _BookingContainerState extends State<BookingContainer> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  if (!hasSelectedDates)
-                    const Text('Выберите даты в календаре'),
-                  if (hasSelectedDates)
-                    ElevatedButton(
-                      onPressed: () async {
-                        final message = buildTelegramBookingMessage(
-                          selectedDays: _selectedDays,
-                          selectedMonth: _selectedMonth,
-                          formatDate: _formatDate,
-                          getGreeting: _getGreeting,
-                        );
-                        await sendTelegramBookingMessage(message);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 12),
-                      ),
-                      child: const Text('Забронировать'),
+                  ElevatedButton(
+                    onPressed: () async {
+                      final message = buildTelegramBookingMessage(
+                        selectedDays: _selectedDays,
+                        selectedMonth: _selectedMonth,
+                        formatDate: _formatDate,
+                        getGreeting: _getGreeting,
+                      );
+                      await sendTelegramBookingMessage(message);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 12),
                     ),
+                    child: const Text('Забронировать', style: buttonTextStyle),
+                  ),
                 ],
               ),
             ),
@@ -300,13 +277,7 @@ class _BookingContainerState extends State<BookingContainer> {
         if (_appVersion.isNotEmpty)
           Container(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text(
-              _appVersion,
-              style: const TextStyle(
-                fontSize: 10,
-                color: Colors.grey,
-              ),
-            ),
+            child: Text(_appVersion, style: versionTextStyle),
           ),
       ],
     );
@@ -316,17 +287,15 @@ class _BookingContainerState extends State<BookingContainer> {
 class TableContainer extends StatelessWidget {
   final Function(int, int) onDateSelected;
   final Set<DateTime> bookedDates;
-
   const TableContainer({
     super.key,
     required this.onDateSelected,
     required this.bookedDates,
   });
-
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFFE8F5E9),
+      color: const Color(0xFFebeed3),
       padding: const EdgeInsets.all(20),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -344,7 +313,7 @@ class TableContainer extends StatelessWidget {
                         child: Container(
                           margin: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: const Color(0xFFfbf4e2),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: CalendarCell(
