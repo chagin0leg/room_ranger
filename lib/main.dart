@@ -132,51 +132,19 @@ class _CalendarCellState extends State<CalendarCell> {
   }
 }
 
-class MainApp extends StatelessWidget {
+class MainApp extends StatefulWidget {
   const MainApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: SingleChildScrollView(
-            scrollDirection: Axis.vertical,
-            child: Center(
-              child: SizedBox(
-                width: baseWidth,
-                height: baseHeight,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: const BookingContainer(),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  State<MainApp> createState() => _MainAppState();
 }
 
-class BookingContainer extends StatefulWidget {
-  const BookingContainer({
-    super.key,
-  });
-  @override
-  State<BookingContainer> createState() => _BookingContainerState();
-}
-
-class _BookingContainerState extends State<BookingContainer> {
-  final Set<DateTime> _selectedDays = {};
-  Set<DateTime> _bookedDates = {};
-  int _selectedMonth = DateTime.now().month;
+class _MainAppState extends State<MainApp> {
   String _appVersion = '';
 
   @override
   void initState() {
     super.initState();
-    _loadBookedDates();
     _loadAppVersion();
   }
 
@@ -191,6 +159,49 @@ class _BookingContainerState extends State<BookingContainer> {
       print('Error loading app version: $e');
     }
     setState(() => _appVersion = 'v$version ($buildNumber)');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: Stack(
+          children: [
+            const Center(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child: BookingContainer(),
+              ),
+            ),
+            Align(
+              alignment: Alignment.topLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 12, top: 12),
+                child: Text(_appVersion, style: versionTextStyle),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class BookingContainer extends StatefulWidget {
+  const BookingContainer({super.key});
+  @override
+  State<BookingContainer> createState() => _BookingContainerState();
+}
+
+class _BookingContainerState extends State<BookingContainer> {
+  final Set<DateTime> _selectedDays = {};
+  Set<DateTime> _bookedDates = {};
+  int _selectedMonth = DateTime.now().month;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBookedDates();
   }
 
   Future<void> _loadBookedDates() async {
@@ -213,60 +224,48 @@ class _BookingContainerState extends State<BookingContainer> {
     });
   }
 
-  String _formatDate(DateTime date) =>
-      '${date.day} ${getMonthName(date.month, GrammaticalCase.genitive)}';
-
-  String _getGreeting() => switch (DateTime.now().hour) {
-        >= 5 && < 12 => 'Доброе утро!',
-        >= 12 && < 17 => 'Добрый день!',
-        >= 17 && < 23 => 'Добрый вечер!',
-        _ => 'Доброй ночи!'
-      };
-
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: Container(
-            color: const Color(0xFFE3F2FD),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: () async {
-                      final message = buildTelegramBookingMessage(
-                        selectedDays: _selectedDays,
-                        selectedMonth: _selectedMonth,
-                        formatDate: _formatDate,
-                        getGreeting: _getGreeting,
-                      );
-                      await sendTelegramBookingMessage(message);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 12),
-                    ),
-                    child: const Text('Забронировать', style: buttonTextStyle),
+    return Container(
+      padding: const EdgeInsets.all(10),
+      width: baseWidth,
+      height: baseHeight,
+      decoration: BoxDecoration(
+        color: const Color(0xFFebeed3),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      alignment: Alignment.center,
+      child: Column(
+        children: [
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () async {
+                    final message = buildTelegramBookingMessage(
+                      selectedDays: _selectedDays,
+                      selectedMonth: _selectedMonth,
+                    );
+                    await sendTelegramBookingMessage(message);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 12),
                   ),
-                ],
-              ),
+                  child: const Text('Забронировать', style: buttonTextStyle),
+                ),
+              ],
             ),
           ),
-        ),
-        TableContainer(
-          onDateSelected: _onDateSelected,
-          bookedDates: _bookedDates,
-        ),
-        if (_appVersion.isNotEmpty)
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text(_appVersion, style: versionTextStyle),
+          TableContainer(
+            onDateSelected: _onDateSelected,
+            bookedDates: _bookedDates,
           ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -281,45 +280,41 @@ class TableContainer extends StatelessWidget {
   });
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFFebeed3),
-      padding: const EdgeInsets.all(20),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: List.generate(4, (rowIndex) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: List.generate(3, (colIndex) {
-                      final monthIndex = rowIndex * 3 + colIndex;
-                      return Expanded(
-                        child: Container(
-                          margin: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFfbf4e2),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: CalendarCell(
-                            month: monthIndex + 1,
-                            year: DateTime.now().year,
-                            onDateSelected: (date) => onDateSelected(date),
-                            bookedDates: bookedDates,
-                          ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(4, (rowIndex) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: List.generate(3, (colIndex) {
+                    final monthIndex = rowIndex * 3 + colIndex;
+                    return Expanded(
+                      child: Container(
+                        margin: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFfbf4e2),
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                      );
-                    }),
-                  ),
-                  if (rowIndex < 3) const SizedBox(height: 8),
-                ],
-              );
-            }),
-          );
-        },
-      ),
+                        child: CalendarCell(
+                          month: monthIndex + 1,
+                          year: DateTime.now().year,
+                          onDateSelected: (date) => onDateSelected(date),
+                          bookedDates: bookedDates,
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+                if (rowIndex < 3) const SizedBox(height: 8),
+              ],
+            );
+          }),
+        );
+      },
     );
   }
 }

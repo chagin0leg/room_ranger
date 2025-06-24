@@ -1,16 +1,23 @@
+import 'package:room_ranger/utils/date_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Формирует текст сообщения для бронирования на основе выбранных дней и месяца.
 String buildTelegramBookingMessage({
   required Set<DateTime> selectedDays,
   required int selectedMonth,
-  required String Function(DateTime) formatDate,
-  required String Function() getGreeting,
 }) {
+  String formatDate(DateTime date) =>
+      '${date.day} ${getMonthName(date.month, GrammaticalCase.genitive)}';
+  String getGreeting() => switch (DateTime.now().hour) {
+        >= 5 && < 12 => 'Доброе утро!',
+        >= 12 && < 17 => 'Добрый день!',
+        >= 17 && < 23 => 'Добрый вечер!',
+        _ => 'Доброй ночи!'
+      };
+
   if (selectedDays.isEmpty) return '';
 
-  final sortedDays = selectedDays.toList()
-    ..sort((a, b) => a.compareTo(b));
+  final sortedDays = selectedDays.toList()..sort((a, b) => a.compareTo(b));
 
   // Группируем последовательные дни в интервалы
   final intervals = <List<DateTime>>[];
@@ -50,4 +57,4 @@ String buildTelegramBookingMessage({
 Future<void> sendTelegramBookingMessage(String message) async {
   final url = 'https://t.me/MyZhiraf?text=${Uri.encodeComponent(message)}';
   await launchUrl(Uri.parse(url));
-} 
+}
