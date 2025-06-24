@@ -50,13 +50,41 @@ jobs:
         run: flutter pub get
 
       - name: Build web
-        run: flutter build web --release --base-href /room_ranger/
+        run: flutter build web --release --base-href /${{ github.event.repository.name }}/
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build/web
+
+      - name: Get commit history
+        id: commits
+        run: |
+          # Получаем последний тег (релиз)
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          if [ -n "$LAST_TAG" ]; then
+            # Получаем коммиты с последнего релиза и форматируем как ссылки
+            COMMIT_LIST=$(git log --oneline --no-merges --format="%H %s" ${LAST_TAG}..HEAD | head -10 | while read hash message; do
+              short_hash=${hash:0:7}
+              echo "- [\`$short_hash\`](https://github.com/${{ github.repository }}/commit/$hash) $message"
+            done)
+            echo "commits<<EOF" >> $GITHUB_OUTPUT
+            echo "$COMMIT_LIST" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            echo "has_commits=true" >> $GITHUB_OUTPUT
+          else
+            # Если это первый релиз, получаем все коммиты
+            COMMIT_LIST=$(git log --oneline --no-merges --format="%H %s" | head -10 | while read hash message; do
+              short_hash=${hash:0:7}
+              echo "- [\`$short_hash\`](https://github.com/${{ github.repository }}/commit/$hash) $message"
+            done)
+            echo "commits<<EOF" >> $GITHUB_OUTPUT
+            echo "$COMMIT_LIST" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            echo "has_commits=true" >> $GITHUB_OUTPUT
+          fi
 
       - name: Create Release
         run: |
@@ -70,10 +98,22 @@ jobs:
           
           ### Технические детали
           - Дата сборки: ${{ github.event.head_commit.timestamp }}
-          - Коммит: ${{ github.sha }}
+          - Коммит: [`${{ github.sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+          EOF
+          
+          # Добавляем секцию изменений только если есть коммиты
+          if [ "${{ steps.commits.outputs.has_commits }}" = "true" ]; then
+            cat >> release_notes.md << 'EOF'
+            
+          ### Изменения
+          ${{ steps.commits.outputs.commits }}
+          EOF
+          fi
+          
+          cat >> release_notes.md << 'EOF'
           
           ### Скачать
-          - [Веб-версия](https://${{ github.repository_owner }}.github.io/room_ranger/)
+          - [Веб-версия](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/)
           EOF
           
           gh release create "v${{ steps.version.outputs.version }}-${{ steps.version.outputs.build }}" \
