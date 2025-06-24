@@ -35,7 +35,13 @@ class _CalendarCellState extends State<CalendarCell> {
   Widget _dayWeek() => Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
-            .map((day) => Text(day, style: weekdayTextStyle))
+            .map((day) => SizedBox.square(
+                dimension: 16,
+                child: Text(
+                  day,
+                  textAlign: TextAlign.center,
+                  style: weekdayTextStyle,
+                )))
             .toList(),
       );
 
@@ -53,11 +59,9 @@ class _CalendarCellState extends State<CalendarCell> {
   Widget _buildDayNumber(int dayNumber) {
     final isSelected = _isDateSelected(dayNumber);
     final isBooked = _isDateBooked(dayNumber);
-    final color = isBooked
-        ? 0xFFed8f75
-        : isSelected
-            ? 0xFFd2dfb3
-            : 0x00000000;
+    int color = 0x00000000;
+    if (isBooked) color = 0xFFed8f75;
+    if (isSelected) color = 0xFFd2dfb3;
 
     return GestureDetector(
       onTap: () {
@@ -113,8 +117,10 @@ class _CalendarCellState extends State<CalendarCell> {
     final firstWeekday = firstDayOfMonth.weekday;
 
     return Container(
-      padding: const EdgeInsets.all(2),
+      padding: const EdgeInsets.all(4),
       child: Column(
+        spacing: 4,
+        crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
           _month(),
@@ -300,8 +306,7 @@ class TableContainer extends StatelessWidget {
                           child: CalendarCell(
                             month: monthIndex + 1,
                             year: DateTime.now().year,
-                            onDateSelected: (date) =>
-                                onDateSelected(date),
+                            onDateSelected: (date) => onDateSelected(date),
                             bookedDates: bookedDates,
                           ),
                         ),

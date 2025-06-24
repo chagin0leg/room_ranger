@@ -5,16 +5,19 @@ const double aspectRatio = 85.6 / 53.98;
 const double baseHeight = baseWidth * aspectRatio;
 
 const monthTextStyle = TextStyle(
-  fontSize: baseWidth / 100 * 2.5,
+  fontSize: baseWidth / 100 * 3,
   fontWeight: FontWeight.bold,
+  color: Color(0xFF4a4b4d),
+  letterSpacing: 1.2,
 );
 const weekdayTextStyle = TextStyle(
-  fontSize: baseWidth / 100 * 2,
+  fontSize: baseWidth / 100 * 2.25,
   fontWeight: FontWeight.bold,
+  color: Color(0xFF4a4b4d),
 );
 const dayTextStyle = TextStyle(
-  fontSize: baseWidth / 100 * 1.8,
-  color: Colors.black,
+  fontSize: baseWidth / 100 * 2,
+  color: Color(0xFF4a4b4d),
 );
 const buttonTextStyle = TextStyle(
   fontSize: baseWidth / 100 * 3,

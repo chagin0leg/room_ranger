@@ -19,9 +19,7 @@ String buildTelegramBookingMessage({
   for (var i = 1; i < sortedDays.length; i++) {
     final prev = sortedDays[i - 1];
     final curr = sortedDays[i];
-    if (curr.difference(prev).inDays == 1 &&
-        curr.month == prev.month &&
-        curr.year == prev.year) {
+    if (curr.difference(prev).inDays == 1) {
       currentInterval.add(curr);
     } else {
       intervals.add(List.from(currentInterval));
