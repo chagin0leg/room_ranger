@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -38,6 +40,7 @@ jobs:
             echo "Version unchanged: $CURRENT_VERSION"
           fi
           
+          # Используем новый формат для передачи данных между шагами
           echo "version=$VERSION_PART" >> $GITHUB_OUTPUT
           echo "build=$TOTAL_COMMITS" >> $GITHUB_OUTPUT
           echo "full_version=$NEW_VERSION" >> $GITHUB_OUTPUT
@@ -47,7 +50,7 @@ jobs:
         run: flutter pub get
 
       - name: Build web
-        run: flutter build web --release --base-href /room_ranger/ --dart-define=VERSION=${{ steps.version.outputs.version }}
+        run: flutter build web --release --base-href /room_ranger/
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
@@ -56,28 +59,29 @@ jobs:
           publish_dir: ./build/web
 
       - name: Create Release
-        uses: actions/create-release@v1
+        run: |
+          cat > release_notes.md << 'EOF'
+          ## Автоматический релиз
+          
+          ### Версия
+          - **Версия:** ${{ steps.version.outputs.version }}
+          - **Сборка:** ${{ steps.version.outputs.build }}
+          - **Полная версия:** ${{ steps.version.outputs.full_version }}
+          
+          ### Технические детали
+          - Дата сборки: ${{ github.event.head_commit.timestamp }}
+          - Коммит: ${{ github.sha }}
+          
+          ### Скачать
+          - [Веб-версия](https://${{ github.repository_owner }}.github.io/room_ranger/)
+          EOF
+          
+          gh release create "v${{ steps.version.outputs.version }}-${{ steps.version.outputs.build }}" \
+            --title "Room Ranger ${{ steps.version.outputs.version }} (${{ steps.version.outputs.build }})" \
+            --notes-file release_notes.md \
+            --repo ${{ github.repository }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ steps.version.outputs.version }}-${{ steps.version.outputs.build }}
-          release_name: Room Ranger ${{ steps.version.outputs.version }} (${{ steps.version.outputs.build }})
-          body: |
-            ## Автоматический релиз
-            
-            ### Версия
-            - **Версия:** ${{ steps.version.outputs.version }}
-            - **Сборка:** ${{ steps.version.outputs.build }}
-            - **Полная версия:** ${{ steps.version.outputs.full_version }}
-            
-            ### Технические детали
-            - Дата сборки: ${{ github.event.head_commit.timestamp }}
-            - Коммит: ${{ github.sha }}
-            
-            ### Скачать
-            - [Веб-версия](https://${{ github.repository_owner }}.github.io/room_ranger/)
-          draft: false
-          prerelease: false
 
       - name: Commit version update
         run: |
