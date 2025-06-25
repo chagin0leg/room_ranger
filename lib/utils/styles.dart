@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-const double baseWidth = 480;
+const double baseWidth = 320;
 const double aspectRatio = 16 / 9;
 // const double aspectRatio = 85.6 / 53.98;
 const double baseHeight = baseWidth * aspectRatio;
@@ -37,4 +37,20 @@ const versionTextStyle = TextStyle(
   fontSize: baseWidth / 100 * 2,
   fontWeight: FontWeight.w100,
   color: colorButtonFg,
-); 
+);
+
+// ========== RELATIVE SIZES ============= //
+
+// Размеры для ячеек календаря и других элементов
+const double calendarCellDimension = baseWidth / 30; // ~16 при 480px
+const double calendarCellMargin = baseWidth / 120; // ~4 при 480px
+const double calendarCellBorderRadius = baseWidth / 24; // ~20 при 480px
+const double calendarCellSpacing = baseWidth / 120; // ~4 при 480px
+const double calendarRowSpacing = baseWidth / 60; // ~8 при 480px
+const double bookingContainerPadding = baseWidth / 48; // ~10 при 480px
+const double versionPadding = baseWidth / 40; // ~12 при 480px
+const double roomButtonSize = baseWidth / 6.15; // ~78 при 480px
+const double bookingContainerBorderRadius = baseWidth / 24; // ~20 при 480px
+const double bookingButtonFontSize = baseWidth / 40; // ~12 при 480px
+
+// ========== END RELATIVE SIZES ========== // 

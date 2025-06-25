@@ -38,7 +38,7 @@ class _CalendarCellState extends State<CalendarCell> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
             .map((day) => SizedBox.square(
-                dimension: 16,
+                dimension: calendarCellDimension,
                 child: Text(
                   day,
                   textAlign: TextAlign.center,
@@ -78,8 +78,8 @@ class _CalendarCellState extends State<CalendarCell> {
         alignment: Alignment.center,
         children: [
           Container(
-            width: 16,
-            height: 16,
+            width: calendarCellDimension,
+            height: calendarCellDimension,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Color(color),
@@ -104,7 +104,7 @@ class _CalendarCellState extends State<CalendarCell> {
             children: List.generate(7, (dayIndex) {
               final dayNumber = week * 7 + dayIndex - firstWeekday + 2;
               return (dayNumber < 1 || dayNumber > daysInMonth)
-                  ? const SizedBox.square(dimension: 16)
+                  ? SizedBox.square(dimension: calendarCellDimension)
                   : _buildDayNumber(dayNumber);
             }),
           ),
@@ -119,9 +119,9 @@ class _CalendarCellState extends State<CalendarCell> {
     final firstWeekday = firstDayOfMonth.weekday;
 
     return Container(
-      padding: const EdgeInsets.all(4),
+      padding: EdgeInsets.all(calendarCellMargin),
       child: Column(
-        spacing: 4,
+        spacing: calendarCellSpacing,
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -160,10 +160,11 @@ class TableContainer extends StatelessWidget {
                     final monthIndex = rowIndex * 3 + colIndex;
                     return Expanded(
                       child: Container(
-                        margin: const EdgeInsets.all(4),
+                        margin: EdgeInsets.all(calendarCellMargin),
                         decoration: BoxDecoration(
                           color: colorTableCell,
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius:
+                              BorderRadius.circular(calendarCellBorderRadius),
                         ),
                         child: CalendarCell(
                           month: monthIndex + 1,
@@ -175,7 +176,7 @@ class TableContainer extends StatelessWidget {
                     );
                   }),
                 ),
-                if (rowIndex < 3) const SizedBox(height: 8),
+                if (rowIndex < 3) SizedBox(height: calendarRowSpacing),
               ],
             );
           }),
@@ -230,22 +231,21 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
         ),
         Expanded(
           child: Column(
-            spacing: 4,
+            spacing: calendarCellSpacing,
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               ElevatedButton(
                 onPressed: () async {
                   final message = buildTelegramBookingMessage(
-                    selectedDays: widget.selectedDays,
-                    selectedMonth: widget.selectedMonth,
-                  );
+                      selectedDays: widget.selectedDays,
+                      selectedMonth: widget.selectedMonth);
                   await sendTelegramBookingMessage(message);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: colorButtonBg,
-                  foregroundColor: colorButtonFg,
-                ),
+                    backgroundColor: colorButtonBg,
+                    foregroundColor: colorButtonFg,
+                    padding: const EdgeInsets.all(0)),
                 child: const Text('Забронировать', style: buttonTextStyle),
               ),
               Expanded(
@@ -255,7 +255,8 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
                     maxLines: 3,
                     softWrap: true,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    style: const TextStyle(
+                        fontSize: bookingButtonFontSize, color: Colors.grey),
                     (widget.selectedDays.isEmpty)
                         ? 'Выберите даты'
                         : formatBookingDatesText(
@@ -278,7 +279,8 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
       style: ElevatedButton.styleFrom(
         backgroundColor: _pickedRoom == i ? colorButtonBg : Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
-        minimumSize: const Size.square(78),
+        minimumSize: const Size.square(roomButtonSize),
+        padding: const EdgeInsets.all(0),
       ),
       child: Text(i.toString(), style: buttonTextStyle),
     );
@@ -329,12 +331,12 @@ class _BookingContainerState extends State<BookingContainer> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: EdgeInsets.all(bookingContainerPadding),
       width: baseWidth,
       height: baseHeight,
       decoration: BoxDecoration(
         color: colorBookingBg,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(bookingContainerBorderRadius),
       ),
       alignment: Alignment.center,
       child: Column(
@@ -401,7 +403,8 @@ class _MainAppState extends State<MainApp> {
             Align(
               alignment: Alignment.topLeft,
               child: Padding(
-                padding: const EdgeInsets.only(left: 12, top: 12),
+                padding:
+                    EdgeInsets.only(left: versionPadding, top: versionPadding),
                 child: Text(_appVersion, style: versionTextStyle),
               ),
             ),
