@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 const double baseWidth = 480;
-const double aspectRatio = 85.6 / 53.98;
+const double aspectRatio = 16 / 9;
+// const double aspectRatio = 85.6 / 53.98;
 const double baseHeight = baseWidth * aspectRatio;
 
 const Color colorBooked = Color(0xFFed8f75);
