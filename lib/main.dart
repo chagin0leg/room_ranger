@@ -6,6 +6,8 @@ import 'package:room_ranger/utils/telegram_utils.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:room_ranger/utils/styles.dart';
 
+// ========================================================================== //
+
 class CalendarCell extends StatefulWidget {
   final int month;
   final int year;
@@ -132,6 +134,165 @@ class _CalendarCellState extends State<CalendarCell> {
   }
 }
 
+// ========================================================================== //
+
+class TableContainer extends StatelessWidget {
+  final Function(DateTime) onDateSelected;
+  final Set<DateTime> bookedDates;
+  const TableContainer({
+    super.key,
+    required this.onDateSelected,
+    required this.bookedDates,
+  });
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(4, (rowIndex) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: List.generate(3, (colIndex) {
+                    final monthIndex = rowIndex * 3 + colIndex;
+                    return Expanded(
+                      child: Container(
+                        margin: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFfbf4e2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: CalendarCell(
+                          month: monthIndex + 1,
+                          year: DateTime.now().year,
+                          onDateSelected: (date) => onDateSelected(date),
+                          bookedDates: bookedDates,
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+                if (rowIndex < 3) const SizedBox(height: 8),
+              ],
+            );
+          }),
+        );
+      },
+    );
+  }
+}
+
+// ========================================================================== //
+
+class BookingButtonContainer extends StatelessWidget {
+  final Set<DateTime> selectedDays;
+  final int selectedMonth;
+  const BookingButtonContainer({
+    super.key,
+    required this.selectedDays,
+    required this.selectedMonth,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        ElevatedButton(
+          onPressed: () async {
+            final message = buildTelegramBookingMessage(
+              selectedDays: selectedDays,
+              selectedMonth: selectedMonth,
+            );
+            await sendTelegramBookingMessage(message);
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.green,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          ),
+          child: const Text('Забронировать', style: buttonTextStyle),
+        ),
+      ],
+    );
+  }
+}
+
+// ========================================================================== //
+
+class BookingContainer extends StatefulWidget {
+  const BookingContainer({super.key});
+  @override
+  State<BookingContainer> createState() => _BookingContainerState();
+}
+
+class _BookingContainerState extends State<BookingContainer> {
+  final Set<DateTime> _selectedDays = {};
+  Set<DateTime> _bookedDates = {};
+  int _selectedMonth = DateTime.now().month;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBookedDates();
+  }
+
+  Future<void> _loadBookedDates() async {
+    try {
+      final bookedDates = await GoogleCalendarService.getBookedDates();
+      setState(() => _bookedDates = bookedDates);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading booked dates: $e');
+      }
+    }
+  }
+
+  void _onDateSelected(DateTime date) {
+    setState(() {
+      if (_selectedDays.contains(date)) {
+        _selectedDays.remove(date);
+      } else {
+        _selectedDays.add(date);
+        _selectedMonth = date.month;
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      width: baseWidth,
+      height: baseHeight,
+      decoration: BoxDecoration(
+        color: const Color(0xFFebeed3),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      alignment: Alignment.center,
+      child: Column(
+        children: [
+          Expanded(
+            child: BookingButtonContainer(
+              selectedDays: _selectedDays,
+              selectedMonth: _selectedMonth,
+            ),
+          ),
+          TableContainer(
+            onDateSelected: _onDateSelected,
+            bookedDates: _bookedDates,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ========================================================================== //
+
 class MainApp extends StatefulWidget {
   const MainApp({super.key});
 
@@ -187,138 +348,7 @@ class _MainAppState extends State<MainApp> {
   }
 }
 
-class BookingContainer extends StatefulWidget {
-  const BookingContainer({super.key});
-  @override
-  State<BookingContainer> createState() => _BookingContainerState();
-}
-
-class _BookingContainerState extends State<BookingContainer> {
-  final Set<DateTime> _selectedDays = {};
-  Set<DateTime> _bookedDates = {};
-  int _selectedMonth = DateTime.now().month;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadBookedDates();
-  }
-
-  Future<void> _loadBookedDates() async {
-    try {
-      final bookedDates = await GoogleCalendarService.getBookedDates();
-      setState(() => _bookedDates = bookedDates);
-    } catch (e) {
-      print('Error loading booked dates: $e');
-    }
-  }
-
-  void _onDateSelected(DateTime date) {
-    setState(() {
-      if (_selectedDays.contains(date)) {
-        _selectedDays.remove(date);
-      } else {
-        _selectedDays.add(date);
-        _selectedMonth = date.month;
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      width: baseWidth,
-      height: baseHeight,
-      decoration: BoxDecoration(
-        color: const Color(0xFFebeed3),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      alignment: Alignment.center,
-      child: Column(
-        children: [
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () async {
-                    final message = buildTelegramBookingMessage(
-                      selectedDays: _selectedDays,
-                      selectedMonth: _selectedMonth,
-                    );
-                    await sendTelegramBookingMessage(message);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 12),
-                  ),
-                  child: const Text('Забронировать', style: buttonTextStyle),
-                ),
-              ],
-            ),
-          ),
-          TableContainer(
-            onDateSelected: _onDateSelected,
-            bookedDates: _bookedDates,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class TableContainer extends StatelessWidget {
-  final Function(DateTime) onDateSelected;
-  final Set<DateTime> bookedDates;
-  const TableContainer({
-    super.key,
-    required this.onDateSelected,
-    required this.bookedDates,
-  });
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: List.generate(4, (rowIndex) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: List.generate(3, (colIndex) {
-                    final monthIndex = rowIndex * 3 + colIndex;
-                    return Expanded(
-                      child: Container(
-                        margin: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFfbf4e2),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: CalendarCell(
-                          month: monthIndex + 1,
-                          year: DateTime.now().year,
-                          onDateSelected: (date) => onDateSelected(date),
-                          bookedDates: bookedDates,
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-                if (rowIndex < 3) const SizedBox(height: 8),
-              ],
-            );
-          }),
-        );
-      },
-    );
-  }
-}
-
+// ========================================================================== //
 void main() {
   runApp(const MainApp());
 }
