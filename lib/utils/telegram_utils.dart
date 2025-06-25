@@ -58,3 +58,46 @@ Future<void> sendTelegramBookingMessage(String message) async {
   final url = 'https://t.me/MyZhiraf?text=${Uri.encodeComponent(message)}';
   await launchUrl(Uri.parse(url));
 }
+
+/// Формирует текст для отображения выбранных дат (без приветствия и фразы "Хочу забронировать номер").
+String formatBookingDatesText({
+  required Set<DateTime> selectedDays,
+  required int selectedMonth,
+}) {
+  String formatDate(DateTime date) =>
+      '${date.day} ${getMonthName(date.month, GrammaticalCase.genitive)}';
+
+  if (selectedDays.isEmpty) return '';
+
+  final sortedDays = selectedDays.toList()..sort((a, b) => a.compareTo(b));
+
+  // Группируем последовательные дни в интервалы
+  final intervals = <List<DateTime>>[];
+  var currentInterval = <DateTime>[sortedDays.first];
+
+  for (var i = 1; i < sortedDays.length; i++) {
+    final prev = sortedDays[i - 1];
+    final curr = sortedDays[i];
+    if (curr.difference(prev).inDays == 1) {
+      currentInterval.add(curr);
+    } else {
+      intervals.add(List.from(currentInterval));
+      currentInterval = [curr];
+    }
+  }
+  intervals.add(currentInterval);
+
+  // Форматируем интервалы
+  final formattedIntervals = intervals
+      .map((interval) => interval.length == 1
+          ? formatDate(interval.first)
+          : 'с ${formatDate(interval.first)} по ${formatDate(interval.last)}')
+      .toList();
+
+  if (formattedIntervals.length == 1) {
+    return formattedIntervals.first;
+  }
+
+  final lastInterval = formattedIntervals.removeLast();
+  return '${formattedIntervals.join(", ")} и $lastInterval';
+}
