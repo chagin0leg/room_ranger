@@ -187,7 +187,7 @@ class TableContainer extends StatelessWidget {
 
 // ========================================================================== //
 
-class BookingButtonContainer extends StatelessWidget {
+class BookingButtonContainer extends StatefulWidget {
   final Set<DateTime> selectedDays;
   final int selectedMonth;
   const BookingButtonContainer({
@@ -197,26 +197,90 @@ class BookingButtonContainer extends StatelessWidget {
   });
 
   @override
+  State<BookingButtonContainer> createState() => _BookingButtonContainerState();
+}
+
+class _BookingButtonContainerState extends State<BookingButtonContainer> {
+  int _pickedRoom = 0;
+
+  @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        ElevatedButton(
-          onPressed: () async {
-            final message = buildTelegramBookingMessage(
-              selectedDays: selectedDays,
-              selectedMonth: selectedMonth,
-            );
-            await sendTelegramBookingMessage(message);
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: colorButtonBg,
-            foregroundColor: colorButtonFg,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        Expanded(
+          flex: 2,
+          child: Stack(
+            children: [
+              Center(child: Image.asset('assets/home.png')),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [roomPicker(4), roomPicker(3)],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [roomPicker(1), roomPicker(2)],
+                  ),
+                ],
+              ),
+            ],
           ),
-          child: const Text('Забронировать', style: buttonTextStyle),
+        ),
+        Expanded(
+          child: Column(
+            spacing: 4,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ElevatedButton(
+                onPressed: () async {
+                  final message = buildTelegramBookingMessage(
+                    selectedDays: widget.selectedDays,
+                    selectedMonth: widget.selectedMonth,
+                  );
+                  await sendTelegramBookingMessage(message);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colorButtonBg,
+                  foregroundColor: colorButtonFg,
+                ),
+                child: const Text('Забронировать', style: buttonTextStyle),
+              ),
+              Expanded(
+                child: Center(
+                  child: Text(
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 3,
+                    softWrap: true,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    (widget.selectedDays.isEmpty)
+                        ? 'Выберите даты'
+                        : formatBookingDatesText(
+                            selectedDays: widget.selectedDays,
+                            selectedMonth: widget.selectedMonth,
+                          ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
+    );
+  }
+
+  ElevatedButton roomPicker(int i) {
+    return ElevatedButton(
+      onPressed: () => setState(() => _pickedRoom = (_pickedRoom != i) ? i : 0),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: _pickedRoom == i ? colorButtonBg : Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
+        minimumSize: const Size.square(78),
+      ),
+      child: Text(i.toString(), style: buttonTextStyle),
     );
   }
 }
