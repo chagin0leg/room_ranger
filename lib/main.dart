@@ -61,9 +61,9 @@ class _CalendarCellState extends State<CalendarCell> {
   Widget _buildDayNumber(int dayNumber) {
     final isSelected = _isDateSelected(dayNumber);
     final isBooked = _isDateBooked(dayNumber);
-    int color = 0x00000000;
-    if (isBooked) color = 0xFFed8f75;
-    if (isSelected) color = 0xFFd2dfb3;
+    int color = colorTransparent.value;
+    if (isBooked) color = colorBooked.value;
+    if (isSelected) color = colorSelected.value;
 
     return GestureDetector(
       onTap: () {
@@ -162,7 +162,7 @@ class TableContainer extends StatelessWidget {
                       child: Container(
                         margin: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFfbf4e2),
+                          color: colorTableCell,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: CalendarCell(
@@ -210,8 +210,8 @@ class BookingButtonContainer extends StatelessWidget {
             await sendTelegramBookingMessage(message);
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green,
-            foregroundColor: Colors.white,
+            backgroundColor: colorButtonBg,
+            foregroundColor: colorButtonFg,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           ),
           child: const Text('Забронировать', style: buttonTextStyle),
@@ -269,7 +269,7 @@ class _BookingContainerState extends State<BookingContainer> {
       width: baseWidth,
       height: baseHeight,
       decoration: BoxDecoration(
-        color: const Color(0xFFebeed3),
+        color: colorBookingBg,
         borderRadius: BorderRadius.circular(20),
       ),
       alignment: Alignment.center,
