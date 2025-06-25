@@ -15,7 +15,8 @@ String buildTelegramBookingMessage({
         _ => 'Доброй ночи!'
       };
 
-  if (selectedDays.isEmpty) return '';
+  String result = '${getGreeting()}\nХочу забронировать номер';
+  if (selectedDays.isEmpty) return result;
 
   final sortedDays = selectedDays.toList()..sort((a, b) => a.compareTo(b));
 
@@ -46,11 +47,11 @@ String buildTelegramBookingMessage({
   if (formattedIntervals.length == 1) {
     final interval = formattedIntervals.first;
     final hasInterval = interval.startsWith('с');
-    return '${getGreeting()}\nХочу забронировать номер ${hasInterval ? 'на даты ' : 'на '}$interval';
+    return '$result ${hasInterval ? 'на даты ' : 'на '}$interval';
   }
 
   final lastInterval = formattedIntervals.removeLast();
-  return '${getGreeting()}\nХочу забронировать номер на даты ${formattedIntervals.join(", ")} и $lastInterval';
+  return '$result на даты: ${formattedIntervals.join(", ")} и $lastInterval';
 }
 
 /// Открывает Telegram с готовым сообщением для отправки.
