@@ -31,18 +31,18 @@ class _CalendarCellState extends State<CalendarCell> {
 
   Widget _month() => Text(
         getMonthName(widget.month, GrammaticalCase.nominative),
-        style: monthTextStyle,
+        style: getMonthTextStyle(context),
       );
 
   Widget _dayWeek() => Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
             .map((day) => SizedBox.square(
-                dimension: calendarCellDimension,
+                dimension: getCalendarCellDimension(context),
                 child: Text(
                   day,
                   textAlign: TextAlign.center,
-                  style: weekdayTextStyle,
+                  style: getWeekdayTextStyle(context),
                 )))
             .toList(),
       );
@@ -78,8 +78,8 @@ class _CalendarCellState extends State<CalendarCell> {
         alignment: Alignment.center,
         children: [
           Container(
-            width: calendarCellDimension,
-            height: calendarCellDimension,
+            width: getCalendarCellDimension(context),
+            height: getCalendarCellDimension(context),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Color(color),
@@ -87,7 +87,7 @@ class _CalendarCellState extends State<CalendarCell> {
           ),
           Text(
             dayNumber.toString(),
-            style: dayTextStyle,
+            style: getDayTextStyle(context),
           ),
         ],
       ),
@@ -104,7 +104,7 @@ class _CalendarCellState extends State<CalendarCell> {
             children: List.generate(7, (dayIndex) {
               final dayNumber = week * 7 + dayIndex - firstWeekday + 2;
               return (dayNumber < 1 || dayNumber > daysInMonth)
-                  ? SizedBox.square(dimension: calendarCellDimension)
+                  ? SizedBox.square(dimension: getCalendarCellDimension(context))
                   : _buildDayNumber(dayNumber);
             }),
           ),
@@ -119,9 +119,9 @@ class _CalendarCellState extends State<CalendarCell> {
     final firstWeekday = firstDayOfMonth.weekday;
 
     return Container(
-      padding: EdgeInsets.all(calendarCellMargin),
+      padding: EdgeInsets.all(getCalendarCellMargin(context)),
       child: Column(
-        spacing: calendarCellSpacing,
+        spacing: getCalendarCellSpacing(context),
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -160,11 +160,11 @@ class TableContainer extends StatelessWidget {
                     final monthIndex = rowIndex * 3 + colIndex;
                     return Expanded(
                       child: Container(
-                        margin: EdgeInsets.all(calendarCellMargin),
+                        margin: EdgeInsets.all(getCalendarCellMargin(context)),
                         decoration: BoxDecoration(
                           color: colorTableCell,
                           borderRadius:
-                              BorderRadius.circular(calendarCellBorderRadius),
+                              BorderRadius.circular(getCalendarCellBorderRadius(context)),
                         ),
                         child: CalendarCell(
                           month: monthIndex + 1,
@@ -176,7 +176,7 @@ class TableContainer extends StatelessWidget {
                     );
                   }),
                 ),
-                if (rowIndex < 3) SizedBox(height: calendarRowSpacing),
+                if (rowIndex < 3) SizedBox(height: getCalendarRowSpacing(context)),
               ],
             );
           }),
@@ -231,7 +231,7 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
         ),
         Expanded(
           child: Column(
-            spacing: calendarCellSpacing,
+            spacing: getCalendarCellSpacing(context),
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -246,7 +246,7 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
                     backgroundColor: colorButtonBg,
                     foregroundColor: colorButtonFg,
                     padding: const EdgeInsets.all(0)),
-                child: const Text('Забронировать', style: buttonTextStyle),
+                child: Text('Забронировать', style: getButtonTextStyle(context)),
               ),
               Expanded(
                 child: Center(
@@ -255,8 +255,8 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
                     maxLines: 3,
                     softWrap: true,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        fontSize: bookingButtonFontSize, color: Colors.grey),
+                    style: TextStyle(
+                        fontSize: getBookingButtonFontSize(context), color: Colors.grey),
                     (widget.selectedDays.isEmpty)
                         ? 'Выберите даты'
                         : formatBookingDatesText(
@@ -279,10 +279,10 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
       style: ElevatedButton.styleFrom(
         backgroundColor: _pickedRoom == i ? colorButtonBg : Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
-        minimumSize: const Size.square(roomButtonSize),
+        minimumSize: Size.square(getRoomButtonSize(context)),
         padding: const EdgeInsets.all(0),
       ),
-      child: Text(i.toString(), style: buttonTextStyle),
+      child: Text(i.toString(), style: getButtonTextStyle(context)),
     );
   }
 }
@@ -331,12 +331,12 @@ class _BookingContainerState extends State<BookingContainer> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(bookingContainerPadding),
-      width: baseWidth,
-      height: baseHeight,
+      padding: EdgeInsets.all(getBookingContainerPadding(context)),
+      width: getBaseWidth(context),
+      height: getBaseHeight(context),
       decoration: BoxDecoration(
         color: colorBookingBg,
-        borderRadius: BorderRadius.circular(bookingContainerBorderRadius),
+        borderRadius: BorderRadius.circular(getBookingContainerBorderRadius(context)),
       ),
       alignment: Alignment.center,
       child: Column(
@@ -404,8 +404,8 @@ class _MainAppState extends State<MainApp> {
               alignment: Alignment.topLeft,
               child: Padding(
                 padding:
-                    EdgeInsets.only(left: versionPadding, top: versionPadding),
-                child: Text(_appVersion, style: versionTextStyle),
+                    EdgeInsets.only(left: getVersionPadding(context), top: getVersionPadding(context)),
+                child: Text(_appVersion, style: getVersionTextStyle(context)),
               ),
             ),
           ],
