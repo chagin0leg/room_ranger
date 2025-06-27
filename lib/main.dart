@@ -28,6 +28,7 @@ class CalendarCell extends StatefulWidget {
 
 class _CalendarCellState extends State<CalendarCell> {
   final Set<DateTime> _selectedDays = {};
+  int? _lastHoveredDay;
 
   Widget _month() => Text(
         getMonthName(widget.month, GrammaticalCase.nominative),
@@ -58,31 +59,26 @@ class _CalendarCellState extends State<CalendarCell> {
     return _selectedDays.contains(DateTime(widget.year, widget.month, day));
   }
 
-  Widget _buildDayNumber(int dayNumber) {
+  Widget _buildDayNumber(int dayNumber, int daysInMonth) {
     final isSelected = _isDateSelected(dayNumber);
     final isBooked = _isDateBooked(dayNumber);
-    int color = colorTransparent.value;
-    if (isBooked) color = colorBooked.value;
-    if (isSelected) color = colorSelected.value;
+    Color color = colorTransparent;
+    if (isBooked) color = colorBooked;
+    if (isSelected) color = colorSelected;
 
-    return GestureDetector(
-      onTap: () {
-        if (isBooked) return;
-        final date = DateTime(widget.year, widget.month, dayNumber);
-        setState(() => (isSelected)
-            ? _selectedDays.remove(date)
-            : _selectedDays.add(date));
-        widget.onDateSelected(date);
-      },
+    if (dayNumber < 1 || dayNumber > daysInMonth) {
+      return Expanded(
+          child: SizedBox.square(dimension: getCalendarCellDimension(context)));
+    }
+    return Expanded(
       child: Stack(
         alignment: Alignment.center,
         children: [
           Container(
-            width: getCalendarCellDimension(context),
             height: getCalendarCellDimension(context),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Color(color),
+              color: color,
             ),
           ),
           Text(
@@ -95,20 +91,27 @@ class _CalendarCellState extends State<CalendarCell> {
   }
 
   Widget _buildWeeks(int daysInMonth, int firstWeekday) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (var week = 0; week < 6; week++)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: List.generate(7, (dayIndex) {
-              final dayNumber = week * 7 + dayIndex - firstWeekday + 2;
-              return (dayNumber < 1 || dayNumber > daysInMonth)
-                  ? SizedBox.square(dimension: getCalendarCellDimension(context))
-                  : _buildDayNumber(dayNumber);
-            }),
-          ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constr) {
+        return GestureDetector(
+          onTapDown: (details) => setState(() => _handleTap(
+              details.localPosition, constr, daysInMonth, firstWeekday)),
+          onPanStart: (details) => setState(() => _handleDrag(
+              details.localPosition, constr, daysInMonth, firstWeekday)),
+          onPanUpdate: (details) => setState(() => _handleDrag(
+              details.localPosition, constr, daysInMonth, firstWeekday)),
+          onPanEnd: (details) => setState(() => _lastHoveredDay = null),
+          child: Column(
+              children: List.generate(6, (week) {
+            return Row(
+              children: List.generate(7, (dayIndex) {
+                final dayNumber = week * 7 + dayIndex - firstWeekday + 2;
+                return _buildDayNumber(dayNumber, daysInMonth);
+              }, growable: false),
+            );
+          }, growable: false)),
+        );
+      },
     );
   }
 
@@ -132,6 +135,53 @@ class _CalendarCellState extends State<CalendarCell> {
       ),
     );
   }
+
+  // Общая логика выбора/снятия выбора дня
+  void _toggleDaySelection(int dayNumber, int daysInMonth) {
+    if (dayNumber < 1 || dayNumber > daysInMonth) return;
+    if (_isDateBooked(dayNumber)) return;
+    final date = DateTime(widget.year, widget.month, dayNumber);
+    final isSelected = _selectedDays.contains(date);
+    setState(() {
+      if (isSelected) {
+        _selectedDays.remove(date);
+      } else {
+        _selectedDays.add(date);
+      }
+    });
+    widget.onDateSelected(date);
+  }
+
+  // Получение номера дня по позиции. Возвращает null, если вне диапазона.
+  int? _getDayFromPos(Offset localPos, BoxConstraints constr, int daysInMonth,
+      int firstWeekday) {
+    final cellHeight = getCalendarCellDimension(context);
+    final cellWidth = constr.maxWidth / 7;
+    final row = (localPos.dy / cellHeight).floor();
+    final col = (localPos.dx / cellWidth).floor();
+    final dayNumber = row * 7 + col - firstWeekday + 2;
+    if (row < 0 || row > 5 || col < 0 || col > 6) return null;
+    if (dayNumber < 1 || dayNumber > daysInMonth) return null;
+    return dayNumber;
+  }
+
+  // Обработка клика по сетке дней
+  void _handleTap(Offset localPos, BoxConstraints constr, int daysInMonth,
+      int firstWeekday) {
+    final day = _getDayFromPos(localPos, constr, daysInMonth, firstWeekday);
+    if (day == null) return;
+    _toggleDaySelection(day, daysInMonth);
+  }
+
+  // Определяет, над каким днём сейчас drag, и выделяет его
+  void _handleDrag(Offset localPos, BoxConstraints constr, int daysInMonth,
+      int firstWeekday) {
+    final day = _getDayFromPos(localPos, constr, daysInMonth, firstWeekday);
+    if (day == null) return;
+    if (_lastHoveredDay == day) return;
+    _lastHoveredDay = day;
+    _toggleDaySelection(day, daysInMonth);
+  }
 }
 
 // ========================================================================== //
@@ -139,10 +189,12 @@ class _CalendarCellState extends State<CalendarCell> {
 class TableContainer extends StatelessWidget {
   final Function(DateTime) onDateSelected;
   final Set<DateTime> bookedDates;
+  final int selectedYear;
   const TableContainer({
     super.key,
     required this.onDateSelected,
     required this.bookedDates,
+    required this.selectedYear,
   });
   @override
   Widget build(BuildContext context) {
@@ -163,12 +215,12 @@ class TableContainer extends StatelessWidget {
                         margin: EdgeInsets.all(getCalendarCellMargin(context)),
                         decoration: BoxDecoration(
                           color: colorTableCell,
-                          borderRadius:
-                              BorderRadius.circular(getCalendarCellBorderRadius(context)),
+                          borderRadius: BorderRadius.circular(
+                              getCalendarCellBorderRadius(context)),
                         ),
                         child: CalendarCell(
                           month: monthIndex + 1,
-                          year: DateTime.now().year,
+                          year: selectedYear,
                           onDateSelected: (date) => onDateSelected(date),
                           bookedDates: bookedDates,
                         ),
@@ -176,7 +228,8 @@ class TableContainer extends StatelessWidget {
                     );
                   }),
                 ),
-                if (rowIndex < 3) SizedBox(height: getCalendarRowSpacing(context)),
+                if (rowIndex < 3)
+                  SizedBox(height: getCalendarRowSpacing(context)),
               ],
             );
           }),
@@ -188,13 +241,80 @@ class TableContainer extends StatelessWidget {
 
 // ========================================================================== //
 
+class YearSelector extends StatelessWidget {
+  final int selectedYear;
+  final Function(int) onYearChanged;
+
+  const YearSelector({
+    super.key,
+    required this.selectedYear,
+    required this.onYearChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final currentYear = DateTime.now().year;
+    final maxYear = currentYear + 5;
+    final canGoLeft = selectedYear > currentYear;
+    final canGoRight = selectedYear < maxYear;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          onPressed: canGoLeft ? () => onYearChanged(selectedYear - 1) : null,
+          icon: Icon(
+            Icons.arrow_back_ios,
+            color: canGoLeft ? colorButtonFg : Colors.grey,
+            size: getBaseWidth(context) / 100 * 4,
+          ),
+        ),
+        Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: getBaseWidth(context) / 100 * 3,
+            vertical: getBaseWidth(context) / 100 * 1.5,
+          ),
+          decoration: BoxDecoration(
+            color: colorButtonBg,
+            borderRadius:
+                BorderRadius.circular(getBaseWidth(context) / 100 * 2),
+          ),
+          child: Text(
+            selectedYear.toString(),
+            style: TextStyle(
+              fontSize: getBaseWidth(context) / 100 * 3.5,
+              fontWeight: FontWeight.bold,
+              color: colorButtonFg,
+            ),
+          ),
+        ),
+        IconButton(
+          onPressed: canGoRight ? () => onYearChanged(selectedYear + 1) : null,
+          icon: Icon(
+            Icons.arrow_forward_ios,
+            color: canGoRight ? colorButtonFg : Colors.grey,
+            size: getBaseWidth(context) / 100 * 4,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ========================================================================== //
+
 class BookingButtonContainer extends StatefulWidget {
   final Set<DateTime> selectedDays;
   final int selectedMonth;
+  final int selectedYear;
+  final Function(int) onYearChanged;
+
   const BookingButtonContainer({
     super.key,
     required this.selectedDays,
     required this.selectedMonth,
+    required this.selectedYear,
+    required this.onYearChanged,
   });
 
   @override
@@ -235,6 +355,11 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              YearSelector(
+                selectedYear: widget.selectedYear,
+                onYearChanged: widget.onYearChanged,
+              ),
+              SizedBox(height: getCalendarCellSpacing(context)),
               ElevatedButton(
                 onPressed: () async {
                   final message = buildTelegramBookingMessage(
@@ -246,17 +371,19 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
                     backgroundColor: colorButtonBg,
                     foregroundColor: colorButtonFg,
                     padding: const EdgeInsets.all(0)),
-                child: Text('Забронировать', style: getButtonTextStyle(context)),
+                child:
+                    Text('Забронировать', style: getButtonTextStyle(context)),
               ),
               Expanded(
                 child: Center(
                   child: Text(
                     overflow: TextOverflow.ellipsis,
-                    maxLines: 3,
+                    maxLines: 4,
                     softWrap: true,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        fontSize: getBookingButtonFontSize(context), color: Colors.grey),
+                        fontSize: getBookingButtonFontSize(context),
+                        color: Colors.grey),
                     (widget.selectedDays.isEmpty)
                         ? 'Выберите даты'
                         : formatBookingDatesText(
@@ -299,6 +426,7 @@ class _BookingContainerState extends State<BookingContainer> {
   final Set<DateTime> _selectedDays = {};
   Set<DateTime> _bookedDates = {};
   int _selectedMonth = DateTime.now().month;
+  int _selectedYear = DateTime.now().year;
 
   @override
   void initState() {
@@ -324,7 +452,16 @@ class _BookingContainerState extends State<BookingContainer> {
       } else {
         _selectedDays.add(date);
         _selectedMonth = date.month;
+        _selectedYear = date.year;
       }
+    });
+  }
+
+  void _onYearChanged(int newYear) {
+    setState(() {
+      _selectedYear = newYear;
+      // Очищаем выбранные даты при смене года
+      // _selectedDays.clear();
     });
   }
 
@@ -336,7 +473,8 @@ class _BookingContainerState extends State<BookingContainer> {
       height: getBaseHeight(context),
       decoration: BoxDecoration(
         color: colorBookingBg,
-        borderRadius: BorderRadius.circular(getBookingContainerBorderRadius(context)),
+        borderRadius:
+            BorderRadius.circular(getBookingContainerBorderRadius(context)),
       ),
       alignment: Alignment.center,
       child: Column(
@@ -345,11 +483,14 @@ class _BookingContainerState extends State<BookingContainer> {
             child: BookingButtonContainer(
               selectedDays: _selectedDays,
               selectedMonth: _selectedMonth,
+              selectedYear: _selectedYear,
+              onYearChanged: _onYearChanged,
             ),
           ),
           TableContainer(
             onDateSelected: _onDateSelected,
             bookedDates: _bookedDates,
+            selectedYear: _selectedYear,
           ),
         ],
       ),
@@ -394,17 +535,22 @@ class _MainAppState extends State<MainApp> {
       home: Scaffold(
         body: Stack(
           children: [
-            const Center(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.vertical,
-                child: BookingContainer(),
+            Center(
+              child: InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 3.0,
+                child: const SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  child: BookingContainer(),
+                ),
               ),
             ),
             Align(
               alignment: Alignment.topLeft,
               child: Padding(
-                padding:
-                    EdgeInsets.only(left: getVersionPadding(context), top: getVersionPadding(context)),
+                padding: EdgeInsets.only(
+                    left: getVersionPadding(context),
+                    top: getVersionPadding(context)),
                 child: Text(_appVersion, style: getVersionTextStyle(context)),
               ),
             ),

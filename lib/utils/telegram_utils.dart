@@ -1,29 +1,21 @@
 import 'package:room_ranger/utils/date_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Формирует текст сообщения для бронирования на основе выбранных дней и месяца.
-String buildTelegramBookingMessage({
-  required Set<DateTime> selectedDays,
-  required int selectedMonth,
-}) {
-  String formatDate(DateTime date) =>
-      '${date.day} ${getMonthName(date.month, GrammaticalCase.genitive)}';
-  String getGreeting() => switch (DateTime.now().hour) {
-        >= 5 && < 12 => 'Доброе утро!',
-        >= 12 && < 17 => 'Добрый день!',
-        >= 17 && < 23 => 'Добрый вечер!',
-        _ => 'Доброй ночи!'
-      };
+/// Вспомогательная функция для форматирования даты.
+String _formatDate(DateTime date) {
+  final currentYear = DateTime.now().year;
+  final monthName = getMonthName(date.month, GrammaticalCase.genitive);
+  if (date.year != currentYear) {
+    return '${date.day} $monthName ${date.year}';
+  }
+  return '${date.day} $monthName';
+}
 
-  String result = '${getGreeting()}\nХочу забронировать номер';
-  if (selectedDays.isEmpty) return result;
-
-  final sortedDays = selectedDays.toList()..sort((a, b) => a.compareTo(b));
-
-  // Группируем последовательные дни в интервалы
+/// Вспомогательная функция для группировки последовательных дней в интервалы.
+List<List<DateTime>> _groupDaysToIntervals(List<DateTime> sortedDays) {
+  if (sortedDays.isEmpty) return [];
   final intervals = <List<DateTime>>[];
   var currentInterval = <DateTime>[sortedDays.first];
-
   for (var i = 1; i < sortedDays.length; i++) {
     final prev = sortedDays[i - 1];
     final curr = sortedDays[i];
@@ -35,18 +27,68 @@ String buildTelegramBookingMessage({
     }
   }
   intervals.add(currentInterval);
+  return intervals;
+}
 
-  // Форматируем интервалы
+/// Вспомогательная функция для выбора правильного предлога перед числом ("с" или "со").
+String _getPrepositionForFrom(int day) {
+  // В русском языке перед "2" используется "со"
+  return day == 2 ? 'со' : 'с';
+}
+
+/// Вспомогательная функция для форматирования интервала дат.
+String _formatInterval(List<DateTime> interval, int currentYear, bool hasMultipleYears) {
+  if (interval.length == 1) {
+    return _formatDate(interval.first);
+  }
+  final start = interval.first;
+  final end = interval.last;
+  final preposition = _getPrepositionForFrom(start.day);
+  if (start.year == end.year) {
+    if (start.year != currentYear) {
+      // Всегда для других лет
+      return 'в ${start.year} году $preposition ${start.day} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}';
+    } else {
+      // Для текущего года только если есть интервалы в других годах
+      return hasMultipleYears
+        ? 'в этом году $preposition ${start.day} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}'
+        : '$preposition ${start.day} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}';
+    }
+  } else {
+    // Интервал пересекает годы
+    return '$preposition ${_formatDate(start)} по ${_formatDate(end)}';
+  }
+}
+
+/// Формирует текст сообщения для бронирования на основе выбранных дней и месяца.
+String buildTelegramBookingMessage({
+  required Set<DateTime> selectedDays,
+  required int selectedMonth,
+}) {
+  String getGreeting() => switch (DateTime.now().hour) {
+        >= 5 && < 12 => 'Доброе утро!',
+        >= 12 && < 17 => 'Добрый день!',
+        >= 17 && < 23 => 'Добрый вечер!',
+        _ => 'Доброй ночи!'
+      };
+
+  String result = '${getGreeting()}\nХочу забронировать номер';
+  if (selectedDays.isEmpty) return result;
+
+  final sortedDays = selectedDays.toList()..sort((a, b) => a.compareTo(b));
+  final intervals = _groupDaysToIntervals(sortedDays);
+
+  final years = intervals.map((interval) => interval.first.year).toSet();
+  final currentYear = DateTime.now().year;
+  final hasMultipleYears = years.length > 1;
+
   final formattedIntervals = intervals
-      .map((interval) => interval.length == 1
-          ? formatDate(interval.first)
-          : 'с ${formatDate(interval.first)} по ${formatDate(interval.last)}')
+      .map((interval) => _formatInterval(interval, currentYear, hasMultipleYears))
       .toList();
 
-  // Склеиваем интервалы с союзами
   if (formattedIntervals.length == 1) {
     final interval = formattedIntervals.first;
-    final hasInterval = interval.startsWith('с');
+    final hasInterval = interval.startsWith('с') || interval.startsWith('в этом году') || interval.startsWith('в ');
     return '$result ${hasInterval ? 'на даты ' : 'на '}$interval';
   }
 
@@ -65,34 +107,17 @@ String formatBookingDatesText({
   required Set<DateTime> selectedDays,
   required int selectedMonth,
 }) {
-  String formatDate(DateTime date) =>
-      '${date.day} ${getMonthName(date.month, GrammaticalCase.genitive)}';
-
   if (selectedDays.isEmpty) return '';
 
   final sortedDays = selectedDays.toList()..sort((a, b) => a.compareTo(b));
+  final intervals = _groupDaysToIntervals(sortedDays);
 
-  // Группируем последовательные дни в интервалы
-  final intervals = <List<DateTime>>[];
-  var currentInterval = <DateTime>[sortedDays.first];
+  final years = intervals.map((interval) => interval.first.year).toSet();
+  final currentYear = DateTime.now().year;
+  final hasMultipleYears = years.length > 1;
 
-  for (var i = 1; i < sortedDays.length; i++) {
-    final prev = sortedDays[i - 1];
-    final curr = sortedDays[i];
-    if (curr.difference(prev).inDays == 1) {
-      currentInterval.add(curr);
-    } else {
-      intervals.add(List.from(currentInterval));
-      currentInterval = [curr];
-    }
-  }
-  intervals.add(currentInterval);
-
-  // Форматируем интервалы
   final formattedIntervals = intervals
-      .map((interval) => interval.length == 1
-          ? formatDate(interval.first)
-          : 'с ${formatDate(interval.first)} по ${formatDate(interval.last)}')
+      .map((interval) => _formatInterval(interval, currentYear, hasMultipleYears))
       .toList();
 
   if (formattedIntervals.length == 1) {
