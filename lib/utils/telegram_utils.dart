@@ -30,6 +30,12 @@ List<List<DateTime>> _groupDaysToIntervals(List<DateTime> sortedDays) {
   return intervals;
 }
 
+/// Вспомогательная функция для выбора правильного предлога перед числом ("с" или "со").
+String _getPrepositionForFrom(int day) {
+  // В русском языке перед "2" используется "со"
+  return day == 2 ? 'со' : 'с';
+}
+
 /// Вспомогательная функция для форматирования интервала дат.
 String _formatInterval(List<DateTime> interval, int currentYear, bool hasMultipleYears) {
   if (interval.length == 1) {
@@ -37,19 +43,20 @@ String _formatInterval(List<DateTime> interval, int currentYear, bool hasMultipl
   }
   final start = interval.first;
   final end = interval.last;
+  final preposition = _getPrepositionForFrom(start.day);
   if (start.year == end.year) {
     if (start.year != currentYear) {
       // Всегда для других лет
-      return 'в ${start.year} году с ${start.day} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}';
+      return 'в ${start.year} году $preposition ${start.day} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}';
     } else {
       // Для текущего года только если есть интервалы в других годах
       return hasMultipleYears
-        ? 'в этом году с ${start.day} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}'
-        : 'с ${start.day} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}';
+        ? 'в этом году $preposition ${start.day} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}'
+        : '$preposition ${start.day} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}';
     }
   } else {
     // Интервал пересекает годы
-    return 'с ${_formatDate(start)} по ${_formatDate(end)}';
+    return '$preposition ${_formatDate(start)} по ${_formatDate(end)}';
   }
 }
 
