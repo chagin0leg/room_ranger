@@ -378,7 +378,7 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
                 child: Center(
                   child: Text(
                     overflow: TextOverflow.ellipsis,
-                    maxLines: 3,
+                    maxLines: 4,
                     softWrap: true,
                     textAlign: TextAlign.center,
                     style: TextStyle(
