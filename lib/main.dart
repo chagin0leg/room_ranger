@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:room_ranger/utils/date_utils.dart';
-import 'package:room_ranger/utils/google_calendar_service.dart';
+import 'package:room_ranger/utils/calendar_service.dart';
 import 'package:room_ranger/utils/telegram_utils.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:room_ranger/utils/styles.dart';
