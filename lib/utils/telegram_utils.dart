@@ -6,8 +6,15 @@ String buildTelegramBookingMessage({
   required Set<DateTime> selectedDays,
   required int selectedMonth,
 }) {
-  String formatDate(DateTime date) =>
-      '${date.day} ${getMonthName(date.month, GrammaticalCase.genitive)}';
+  String formatDate(DateTime date) {
+    final currentYear = DateTime.now().year;
+    final monthName = getMonthName(date.month, GrammaticalCase.genitive);
+    if (date.year != currentYear) {
+      return '${date.day} $monthName ${date.year}';
+    }
+    return '${date.day} $monthName';
+  }
+  
   String getGreeting() => switch (DateTime.now().hour) {
         >= 5 && < 12 => 'Доброе утро!',
         >= 12 && < 17 => 'Добрый день!',
@@ -36,17 +43,38 @@ String buildTelegramBookingMessage({
   }
   intervals.add(currentInterval);
 
-  // Форматируем интервалы
-  final formattedIntervals = intervals
-      .map((interval) => interval.length == 1
-          ? formatDate(interval.first)
-          : 'с ${formatDate(interval.first)} по ${formatDate(interval.last)}')
-      .toList();
+  // Определяем, есть ли интервалы в разных годах
+  final years = intervals.map((interval) => interval.first.year).toSet();
+  final currentYear = DateTime.now().year;
+  final hasMultipleYears = years.length > 1;
 
-  // Склеиваем интервалы с союзами
+  String formatInterval(List<DateTime> interval) {
+    if (interval.length == 1) {
+      return formatDate(interval.first);
+    }
+    final start = interval.first;
+    final end = interval.last;
+    if (start.year == end.year) {
+      if (start.year != currentYear) {
+        // Всегда для других лет
+        return 'в ${start.year} году с ${start.day} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}';
+      } else {
+        // Для текущего года только если есть интервалы в других годах
+        return hasMultipleYears
+          ? 'в этом году с ${start.day} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}'
+          : 'с ${start.day} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}';
+      }
+    } else {
+      // Интервал пересекает годы
+      return 'с ${formatDate(start)} по ${formatDate(end)}';
+    }
+  }
+
+  final formattedIntervals = intervals.map(formatInterval).toList();
+
   if (formattedIntervals.length == 1) {
     final interval = formattedIntervals.first;
-    final hasInterval = interval.startsWith('с');
+    final hasInterval = interval.startsWith('с') || interval.startsWith('в этом году') || interval.startsWith('в ');
     return '$result ${hasInterval ? 'на даты ' : 'на '}$interval';
   }
 
@@ -65,8 +93,14 @@ String formatBookingDatesText({
   required Set<DateTime> selectedDays,
   required int selectedMonth,
 }) {
-  String formatDate(DateTime date) =>
-      '${date.day} ${getMonthName(date.month, GrammaticalCase.genitive)}';
+  String formatDate(DateTime date) {
+    final currentYear = DateTime.now().year;
+    final monthName = getMonthName(date.month, GrammaticalCase.genitive);
+    if (date.year != currentYear) {
+      return '${date.day} $monthName ${date.year}';
+    }
+    return '${date.day} $monthName';
+  }
 
   if (selectedDays.isEmpty) return '';
 
@@ -88,12 +122,34 @@ String formatBookingDatesText({
   }
   intervals.add(currentInterval);
 
-  // Форматируем интервалы
-  final formattedIntervals = intervals
-      .map((interval) => interval.length == 1
-          ? formatDate(interval.first)
-          : 'с ${formatDate(interval.first)} по ${formatDate(interval.last)}')
-      .toList();
+  // Определяем, есть ли интервалы в разных годах
+  final years = intervals.map((interval) => interval.first.year).toSet();
+  final currentYear = DateTime.now().year;
+  final hasMultipleYears = years.length > 1;
+
+  String formatInterval(List<DateTime> interval) {
+    if (interval.length == 1) {
+      return formatDate(interval.first);
+    }
+    final start = interval.first;
+    final end = interval.last;
+    if (start.year == end.year) {
+      if (start.year != currentYear) {
+        // Всегда для других лет
+        return 'в ${start.year} году с ${start.day} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}';
+      } else {
+        // Для текущего года только если есть интервалы в других годах
+        return hasMultipleYears
+          ? 'в этом году с ${start.day} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}'
+          : 'с ${start.day} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}';
+      }
+    } else {
+      // Интервал пересекает годы
+      return 'с ${formatDate(start)} по ${formatDate(end)}';
+    }
+  }
+
+  final formattedIntervals = intervals.map(formatInterval).toList();
 
   if (formattedIntervals.length == 1) {
     return formattedIntervals.first;
