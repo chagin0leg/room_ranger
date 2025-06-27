@@ -394,10 +394,14 @@ class _MainAppState extends State<MainApp> {
       home: Scaffold(
         body: Stack(
           children: [
-            const Center(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.vertical,
-                child: BookingContainer(),
+            Center(
+              child: InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 3.0,
+                child: const SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  child: BookingContainer(),
+                ),
               ),
             ),
             Align(
