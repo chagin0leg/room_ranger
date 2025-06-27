@@ -254,7 +254,7 @@ class YearSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentYear = DateTime.now().year;
-    final maxYear = currentYear + 5;
+    final maxYear = currentYear + 2;
     final canGoLeft = selectedYear > currentYear;
     final canGoRight = selectedYear < maxYear;
 
@@ -264,36 +264,27 @@ class YearSelector extends StatelessWidget {
         IconButton(
           onPressed: canGoLeft ? () => onYearChanged(selectedYear - 1) : null,
           icon: Icon(
-            Icons.arrow_back_ios,
+            Icons.keyboard_arrow_left_rounded,
             color: canGoLeft ? colorButtonFg : Colors.grey,
-            size: getBaseWidth(context) / 100 * 4,
           ),
         ),
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: getBaseWidth(context) / 100 * 3,
-            vertical: getBaseWidth(context) / 100 * 1.5,
-          ),
-          decoration: BoxDecoration(
-            color: colorButtonBg,
-            borderRadius:
-                BorderRadius.circular(getBaseWidth(context) / 100 * 2),
-          ),
-          child: Text(
-            selectedYear.toString(),
-            style: TextStyle(
-              fontSize: getBaseWidth(context) / 100 * 3.5,
-              fontWeight: FontWeight.bold,
-              color: colorButtonFg,
+        Expanded(
+          child: Center(
+            child: Text(
+              selectedYear.toString(),
+              style: TextStyle(
+                fontSize: getBaseWidth(context) / 100 * 6,
+                fontWeight: FontWeight.bold,
+                color: colorButtonFg,
+              ),
             ),
           ),
         ),
         IconButton(
           onPressed: canGoRight ? () => onYearChanged(selectedYear + 1) : null,
           icon: Icon(
-            Icons.arrow_forward_ios,
+            Icons.keyboard_arrow_right_rounded,
             color: canGoRight ? colorButtonFg : Colors.grey,
-            size: getBaseWidth(context) / 100 * 4,
           ),
         ),
       ],
@@ -351,7 +342,6 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
         ),
         Expanded(
           child: Column(
-            spacing: getCalendarCellSpacing(context),
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -359,7 +349,6 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
                 selectedYear: widget.selectedYear,
                 onYearChanged: widget.onYearChanged,
               ),
-              SizedBox(height: getCalendarCellSpacing(context)),
               ElevatedButton(
                 onPressed: () async {
                   final message = buildTelegramBookingMessage(
