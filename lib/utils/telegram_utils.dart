@@ -64,6 +64,7 @@ String _formatInterval(List<DateTime> interval, int currentYear, bool hasMultipl
 String buildTelegramBookingMessage({
   required Set<DateTime> selectedDays,
   required int selectedMonth,
+  int? selectedRoom,
 }) {
   String getGreeting() => switch (DateTime.now().hour) {
         >= 5 && < 12 => 'Доброе утро!',
@@ -73,6 +74,12 @@ String buildTelegramBookingMessage({
       };
 
   String result = '${getGreeting()}\nХочу забронировать номер';
+  
+  // Добавляем номер комнаты, если он выбран
+  if (selectedRoom != null && selectedRoom > 0) {
+    result += ' $selectedRoom';
+  }
+  
   if (selectedDays.isEmpty) return result;
 
   final sortedDays = selectedDays.toList()..sort((a, b) => a.compareTo(b));
