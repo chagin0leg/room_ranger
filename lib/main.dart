@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:room_ranger/utils/date_utils.dart';
-import 'package:room_ranger/utils/google_calendar_service.dart';
+import 'package:room_ranger/utils/calendar_service.dart';
 import 'package:room_ranger/utils/telegram_utils.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:room_ranger/utils/styles.dart';
@@ -13,6 +13,8 @@ class CalendarCell extends StatefulWidget {
   final int year;
   final Function(DateTime) onDateSelected;
   final Set<DateTime> bookedDates;
+  final Set<DateTime> selectedDays;
+  final bool isEnabled;
 
   const CalendarCell({
     super.key,
@@ -20,6 +22,8 @@ class CalendarCell extends StatefulWidget {
     required this.year,
     required this.onDateSelected,
     required this.bookedDates,
+    required this.selectedDays,
+    this.isEnabled = true,
   });
 
   @override
@@ -27,7 +31,6 @@ class CalendarCell extends StatefulWidget {
 }
 
 class _CalendarCellState extends State<CalendarCell> {
-  final Set<DateTime> _selectedDays = {};
   int? _lastHoveredDay;
 
   Widget _month() => Text(
@@ -56,7 +59,8 @@ class _CalendarCellState extends State<CalendarCell> {
   }
 
   bool _isDateSelected(int day) {
-    return _selectedDays.contains(DateTime(widget.year, widget.month, day));
+    return widget.selectedDays
+        .contains(DateTime(widget.year, widget.month, day));
   }
 
   Widget _buildDayNumber(int dayNumber, int daysInMonth) {
@@ -93,6 +97,22 @@ class _CalendarCellState extends State<CalendarCell> {
   Widget _buildWeeks(int daysInMonth, int firstWeekday) {
     return LayoutBuilder(
       builder: (context, constr) {
+        final calendarContent = Column(
+            children: List.generate(6, (week) {
+          return Row(
+            children: List.generate(7, (dayIndex) {
+              final dayNumber = week * 7 + dayIndex - firstWeekday + 2;
+              return _buildDayNumber(dayNumber, daysInMonth);
+            }, growable: false),
+          );
+        }, growable: false));
+
+        // Если календарь отключен, возвращаем только контент без GestureDetector
+        if (!widget.isEnabled) {
+          return calendarContent;
+        }
+
+        // Если календарь включен, оборачиваем в GestureDetector
         return GestureDetector(
           onTapDown: (details) => setState(() => _handleTap(
               details.localPosition, constr, daysInMonth, firstWeekday)),
@@ -101,15 +121,7 @@ class _CalendarCellState extends State<CalendarCell> {
           onPanUpdate: (details) => setState(() => _handleDrag(
               details.localPosition, constr, daysInMonth, firstWeekday)),
           onPanEnd: (details) => setState(() => _lastHoveredDay = null),
-          child: Column(
-              children: List.generate(6, (week) {
-            return Row(
-              children: List.generate(7, (dayIndex) {
-                final dayNumber = week * 7 + dayIndex - firstWeekday + 2;
-                return _buildDayNumber(dayNumber, daysInMonth);
-              }, growable: false),
-            );
-          }, growable: false)),
+          child: calendarContent,
         );
       },
     );
@@ -141,14 +153,6 @@ class _CalendarCellState extends State<CalendarCell> {
     if (dayNumber < 1 || dayNumber > daysInMonth) return;
     if (_isDateBooked(dayNumber)) return;
     final date = DateTime(widget.year, widget.month, dayNumber);
-    final isSelected = _selectedDays.contains(date);
-    setState(() {
-      if (isSelected) {
-        _selectedDays.remove(date);
-      } else {
-        _selectedDays.add(date);
-      }
-    });
     widget.onDateSelected(date);
   }
 
@@ -189,12 +193,17 @@ class _CalendarCellState extends State<CalendarCell> {
 class TableContainer extends StatelessWidget {
   final Function(DateTime) onDateSelected;
   final Set<DateTime> bookedDates;
+  final Set<DateTime> selectedDays;
   final int selectedYear;
+  final bool isEnabled;
+
   const TableContainer({
     super.key,
     required this.onDateSelected,
     required this.bookedDates,
+    required this.selectedDays,
     required this.selectedYear,
+    this.isEnabled = true,
   });
   @override
   Widget build(BuildContext context) {
@@ -223,6 +232,8 @@ class TableContainer extends StatelessWidget {
                           year: selectedYear,
                           onDateSelected: (date) => onDateSelected(date),
                           bookedDates: bookedDates,
+                          selectedDays: selectedDays,
+                          isEnabled: isEnabled,
                         ),
                       ),
                     );
@@ -254,7 +265,7 @@ class YearSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentYear = DateTime.now().year;
-    final maxYear = currentYear + 5;
+    final maxYear = currentYear + 2;
     final canGoLeft = selectedYear > currentYear;
     final canGoRight = selectedYear < maxYear;
 
@@ -264,36 +275,27 @@ class YearSelector extends StatelessWidget {
         IconButton(
           onPressed: canGoLeft ? () => onYearChanged(selectedYear - 1) : null,
           icon: Icon(
-            Icons.arrow_back_ios,
+            Icons.keyboard_arrow_left_rounded,
             color: canGoLeft ? colorButtonFg : Colors.grey,
-            size: getBaseWidth(context) / 100 * 4,
           ),
         ),
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: getBaseWidth(context) / 100 * 3,
-            vertical: getBaseWidth(context) / 100 * 1.5,
-          ),
-          decoration: BoxDecoration(
-            color: colorButtonBg,
-            borderRadius:
-                BorderRadius.circular(getBaseWidth(context) / 100 * 2),
-          ),
-          child: Text(
-            selectedYear.toString(),
-            style: TextStyle(
-              fontSize: getBaseWidth(context) / 100 * 3.5,
-              fontWeight: FontWeight.bold,
-              color: colorButtonFg,
+        Expanded(
+          child: Center(
+            child: Text(
+              selectedYear.toString(),
+              style: TextStyle(
+                fontSize: getBaseWidth(context) / 100 * 6,
+                fontWeight: FontWeight.bold,
+                color: colorButtonFg,
+              ),
             ),
           ),
         ),
         IconButton(
           onPressed: canGoRight ? () => onYearChanged(selectedYear + 1) : null,
           icon: Icon(
-            Icons.arrow_forward_ios,
+            Icons.keyboard_arrow_right_rounded,
             color: canGoRight ? colorButtonFg : Colors.grey,
-            size: getBaseWidth(context) / 100 * 4,
           ),
         ),
       ],
@@ -304,17 +306,21 @@ class YearSelector extends StatelessWidget {
 // ========================================================================== //
 
 class BookingButtonContainer extends StatefulWidget {
-  final Set<DateTime> selectedDays;
+  final Map<int, Set<DateTime>> selectedDaysByRoom;
   final int selectedMonth;
   final int selectedYear;
   final Function(int) onYearChanged;
+  final Function(int) onRoomChanged;
+  final int selectedRoom;
 
   const BookingButtonContainer({
     super.key,
-    required this.selectedDays,
+    required this.selectedDaysByRoom,
     required this.selectedMonth,
     required this.selectedYear,
     required this.onYearChanged,
+    required this.onRoomChanged,
+    required this.selectedRoom,
   });
 
   @override
@@ -323,6 +329,45 @@ class BookingButtonContainer extends StatefulWidget {
 
 class _BookingButtonContainerState extends State<BookingButtonContainer> {
   int _pickedRoom = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pickedRoom = widget.selectedRoom;
+  }
+
+  @override
+  void didUpdateWidget(BookingButtonContainer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedRoom != widget.selectedRoom) {
+      _pickedRoom = widget.selectedRoom;
+    }
+  }
+
+  String _getStatusMessage() {
+    if (_pickedRoom <= 0) {
+      return 'Выберите номер';
+    }
+
+    // Проверяем, есть ли выбранные даты в любой комнате
+    final hasAnyDates =
+        widget.selectedDaysByRoom.values.any((dates) => dates.isNotEmpty);
+
+    if (!hasAnyDates) {
+      return 'Выберите даты';
+    } else {
+      return formatAllBookingDatesText(
+        selectedDaysByRoom: widget.selectedDaysByRoom,
+        selectedMonth: widget.selectedMonth,
+      );
+    }
+  }
+
+  String _getButtonText() {
+    return (widget.selectedDaysByRoom.values.any((dates) => dates.isNotEmpty))
+        ? 'Забронировать '
+        : 'Задать вопрос ';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -351,7 +396,6 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
         ),
         Expanded(
           child: Column(
-            spacing: getCalendarCellSpacing(context),
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -359,11 +403,10 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
                 selectedYear: widget.selectedYear,
                 onYearChanged: widget.onYearChanged,
               ),
-              SizedBox(height: getCalendarCellSpacing(context)),
               ElevatedButton(
                 onPressed: () async {
                   final message = buildTelegramBookingMessage(
-                      selectedDays: widget.selectedDays,
+                      selectedDaysByRoom: widget.selectedDaysByRoom,
                       selectedMonth: widget.selectedMonth);
                   await sendTelegramBookingMessage(message);
                 },
@@ -371,25 +414,25 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
                     backgroundColor: colorButtonBg,
                     foregroundColor: colorButtonFg,
                     padding: const EdgeInsets.all(0)),
-                child:
-                    Text('Забронировать', style: getButtonTextStyle(context)),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    const Icon(Icons.telegram_outlined),
+                    Text(_getButtonText(), style: getButtonTextStyle(context)),
+                  ],
+                ),
               ),
               Expanded(
                 child: Center(
                   child: Text(
                     overflow: TextOverflow.ellipsis,
-                    maxLines: 4,
+                    maxLines: 6,
                     softWrap: true,
-                    textAlign: TextAlign.center,
+                    // textAlign: TextAlign.center,
                     style: TextStyle(
                         fontSize: getBookingButtonFontSize(context),
                         color: Colors.grey),
-                    (widget.selectedDays.isEmpty)
-                        ? 'Выберите даты'
-                        : formatBookingDatesText(
-                            selectedDays: widget.selectedDays,
-                            selectedMonth: widget.selectedMonth,
-                          ),
+                    '${_getStatusMessage()}\n',
                   ),
                 ),
               ),
@@ -402,7 +445,11 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
 
   ElevatedButton roomPicker(int i) {
     return ElevatedButton(
-      onPressed: () => setState(() => _pickedRoom = (_pickedRoom != i) ? i : 0),
+      onPressed: () {
+        final newRoom = (_pickedRoom != i) ? i : 0;
+        setState(() => _pickedRoom = newRoom);
+        widget.onRoomChanged(newRoom);
+      },
       style: ElevatedButton.styleFrom(
         backgroundColor: _pickedRoom == i ? colorButtonBg : Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
@@ -423,20 +470,32 @@ class BookingContainer extends StatefulWidget {
 }
 
 class _BookingContainerState extends State<BookingContainer> {
-  final Set<DateTime> _selectedDays = {};
+  // Храним выбранные даты для каждой комнаты отдельно
+  final Map<int, Set<DateTime>> _selectedDaysByRoom = {};
   Set<DateTime> _bookedDates = {};
   int _selectedMonth = DateTime.now().month;
   int _selectedYear = DateTime.now().year;
+  int _selectedRoom = 0;
+
+  // Геттер для получения выбранных дат текущей комнаты
+  Set<DateTime> get _selectedDays => _selectedDaysByRoom[_selectedRoom] ?? {};
 
   @override
   void initState() {
     super.initState();
-    _loadBookedDates();
+    // Не загружаем календарь при запуске - ждем выбора комнаты
   }
 
   Future<void> _loadBookedDates() async {
     try {
-      final bookedDates = await GoogleCalendarService.getBookedDates();
+      // Если комната не выбрана, не загружаем никакой календарь
+      if (_selectedRoom <= 0) {
+        setState(() => _bookedDates = {});
+        return;
+      }
+
+      final bookedDates =
+          await GoogleCalendarService.getBookedDates(_selectedRoom);
       setState(() => _bookedDates = bookedDates);
     } catch (e) {
       if (kDebugMode) {
@@ -447,13 +506,21 @@ class _BookingContainerState extends State<BookingContainer> {
 
   void _onDateSelected(DateTime date) {
     setState(() {
-      if (_selectedDays.contains(date)) {
-        _selectedDays.remove(date);
+      // Получаем или создаем набор дат для текущей комнаты
+      final roomDates = _selectedDaysByRoom[_selectedRoom] ?? {};
+
+      if (roomDates.contains(date)) {
+        roomDates.remove(date);
       } else {
-        _selectedDays.add(date);
-        _selectedMonth = date.month;
-        _selectedYear = date.year;
+        roomDates.add(date);
       }
+
+      // Обновляем даты для текущей комнаты
+      _selectedDaysByRoom[_selectedRoom] = roomDates;
+
+      // Обновляем выбранный месяц и год
+      _selectedMonth = date.month;
+      _selectedYear = date.year;
     });
   }
 
@@ -463,6 +530,15 @@ class _BookingContainerState extends State<BookingContainer> {
       // Очищаем выбранные даты при смене года
       // _selectedDays.clear();
     });
+  }
+
+  void _onRoomChanged(int room) {
+    setState(() {
+      _selectedRoom = room;
+      // НЕ очищаем выбранные даты при смене комнаты - они сохраняются для каждой комнаты
+    });
+    // Загружаем календарь для новой комнаты
+    _loadBookedDates();
   }
 
   @override
@@ -481,16 +557,20 @@ class _BookingContainerState extends State<BookingContainer> {
         children: [
           Expanded(
             child: BookingButtonContainer(
-              selectedDays: _selectedDays,
+              selectedDaysByRoom: _selectedDaysByRoom,
               selectedMonth: _selectedMonth,
               selectedYear: _selectedYear,
               onYearChanged: _onYearChanged,
+              onRoomChanged: _onRoomChanged,
+              selectedRoom: _selectedRoom,
             ),
           ),
           TableContainer(
             onDateSelected: _onDateSelected,
             bookedDates: _bookedDates,
+            selectedDays: _selectedDays,
             selectedYear: _selectedYear,
+            isEnabled: _selectedRoom > 0,
           ),
         ],
       ),
