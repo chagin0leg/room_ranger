@@ -7,8 +7,9 @@ class GoogleCalendarService {
   static const Map<int, List<String>> _roomCalendars = {
     1: [], // Комната 1 - нет календаря, всегда занята
     2: [
+      'https://sutochno.ru/calendar/ical/bd04d8c9335677cf2d43bd99d531d142e61e45.ics',
       'https://thingproxy.freeboard.io/fetch/https://sutochno.ru/calendar/ical/bd04d8c9335677cf2d43bd99d531d142e61e45.ics',
-    ], // Комната 2 - есть календарь
+    ], // Комната 2 - есть календарь (прямая ссылка + прокси)
     3: [], // Комната 3 - нет календаря, всегда занята
     4: [], // Комната 4 - нет календаря, всегда занята
   };
@@ -40,7 +41,18 @@ class GoogleCalendarService {
     for (final url in calendarUrls) {
       try {
         log('[ICS] Комната $roomNumber: Пробую загрузить календарь через: $url');
-        final response = await http.get(Uri.parse(url));
+        
+        final headers = {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Accept': 'text/calendar, text/plain, */*',
+          'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.8',
+        };
+        
+        final response = await http.get(
+          Uri.parse(url),
+          headers: headers,
+        ).timeout(const Duration(seconds: 10));
+        
         if (response.statusCode == 200) {
           final ical = ICalendar.fromString(response.body);
           final Set<DateTime> bookedDates = {};
@@ -75,7 +87,9 @@ class GoogleCalendarService {
         lastError = Exception('Ошибка при попытке через $url: $e');
       }
     }
-    throw lastError ?? Exception('Не удалось загрузить ICS для комнаты $roomNumber');
+    // Если не удалось загрузить календарь, считаем комнату занятой
+    log('[ICS] Комната $roomNumber: Не удалось загрузить календарь - считаем все даты занятыми');
+    return _getAllDatesAsBooked();
   }
 
   /// Возвращает все даты как занятые (для комнат без календаря)
