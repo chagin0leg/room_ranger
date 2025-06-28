@@ -305,7 +305,7 @@ class YearSelector extends StatelessWidget {
 // ========================================================================== //
 
 class BookingButtonContainer extends StatefulWidget {
-  final Set<DateTime> selectedDays;
+  final Map<int, Set<DateTime>> selectedDaysByRoom;
   final int selectedMonth;
   final int selectedYear;
   final Function(int) onYearChanged;
@@ -314,7 +314,7 @@ class BookingButtonContainer extends StatefulWidget {
 
   const BookingButtonContainer({
     super.key,
-    required this.selectedDays,
+    required this.selectedDaysByRoom,
     required this.selectedMonth,
     required this.selectedYear,
     required this.onYearChanged,
@@ -346,11 +346,16 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
   String _getStatusMessage() {
     if (_pickedRoom <= 0) {
       return 'Выберите номер';
-    } else if (widget.selectedDays.isEmpty) {
+    }
+    
+    // Проверяем, есть ли выбранные даты в любой комнате
+    final hasAnyDates = widget.selectedDaysByRoom.values.any((dates) => dates.isNotEmpty);
+    
+    if (!hasAnyDates) {
       return 'Выберите даты';
     } else {
-      return formatBookingDatesText(
-        selectedDays: widget.selectedDays,
+      return formatAllBookingDatesText(
+        selectedDaysByRoom: widget.selectedDaysByRoom,
         selectedMonth: widget.selectedMonth,
       );
     }
@@ -393,9 +398,8 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
               ElevatedButton(
                 onPressed: () async {
                   final message = buildTelegramBookingMessage(
-                      selectedDays: widget.selectedDays,
-                      selectedMonth: widget.selectedMonth,
-                      selectedRoom: _pickedRoom > 0 ? _pickedRoom : null);
+                      selectedDaysByRoom: widget.selectedDaysByRoom,
+                      selectedMonth: widget.selectedMonth);
                   await sendTelegramBookingMessage(message);
                 },
                 style: ElevatedButton.styleFrom(
@@ -539,7 +543,7 @@ class _BookingContainerState extends State<BookingContainer> {
         children: [
           Expanded(
             child: BookingButtonContainer(
-              selectedDays: _selectedDays,
+              selectedDaysByRoom: _selectedDaysByRoom,
               selectedMonth: _selectedMonth,
               selectedYear: _selectedYear,
               onYearChanged: _onYearChanged,
