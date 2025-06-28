@@ -37,7 +37,8 @@ String _getPrepositionForFrom(int day) {
 }
 
 /// Вспомогательная функция для форматирования интервала дат.
-String _formatInterval(List<DateTime> interval, int currentYear, bool hasMultipleYears) {
+String _formatInterval(
+    List<DateTime> interval, int currentYear, bool hasMultipleYears) {
   if (interval.length == 1) {
     return _formatDate(interval.first);
   }
@@ -51,8 +52,8 @@ String _formatInterval(List<DateTime> interval, int currentYear, bool hasMultipl
     } else {
       // Для текущего года только если есть интервалы в других годах
       return hasMultipleYears
-        ? 'в этом году $preposition ${start.day} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}'
-        : '$preposition ${start.day} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}';
+          ? 'в этом году $preposition ${start.day} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}'
+          : '$preposition ${start.day} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}';
     }
   } else {
     // Интервал пересекает годы
@@ -72,37 +73,55 @@ String buildTelegramBookingMessage({
         _ => 'Доброй ночи!'
       };
 
-  String result = '${getGreeting()}\nХочу забронировать';
-  
+  // Подсчитываем количество комнат с выбранными датами
+  final roomsWithDates = selectedDaysByRoom.entries
+      .where((entry) => entry.value.isNotEmpty)
+      .length;
+
+  String getBookingPhrase() {
+    return (roomsWithDates == 0)
+        ? 'У меня есть несколько вопросов по бронированию:\n1. '
+        : 'Хотелось бы забронировать номер${roomsWithDates == 1 ? '' : 'а'} на следующие даты:\n';
+  }
+
+  String message = '${getGreeting()}\n${getBookingPhrase()}';
+
   // Проверяем, есть ли выбранные даты
-  final hasAnyDates = selectedDaysByRoom.values.any((dates) => dates.isNotEmpty);
-  if (!hasAnyDates) return result;
+  final hasAnyDates =
+      selectedDaysByRoom.values.any((dates) => dates.isNotEmpty);
+  if (!hasAnyDates) {
+    return message;
+  }
 
   // Формируем список комнат с датами
   final roomEntries = <String>[];
-  
+
   for (final entry in selectedDaysByRoom.entries) {
     final roomNumber = entry.key;
     final selectedDays = entry.value;
-    
+
     if (selectedDays.isEmpty) continue;
-    
+
     final sortedDays = selectedDays.toList()..sort((a, b) => a.compareTo(b));
     final intervals = _groupDaysToIntervals(sortedDays);
-    
+
     final years = intervals.map((interval) => interval.first.year).toSet();
     final currentYear = DateTime.now().year;
     final hasMultipleYears = years.length > 1;
-    
-    final formattedIntervals = intervals
-        .map((interval) => _formatInterval(interval, currentYear, hasMultipleYears))
-        .toList();
-    
-    final roomText = 'Номер $roomNumber:\n${formattedIntervals.map((interval) => '- $interval').join('\n')}';
+
+    final formattedIntervals = intervals.map((interval) {
+      return _formatInterval(interval, currentYear, hasMultipleYears);
+    }).toList();
+
+    final roomText =
+        'Номер $roomNumber:\n${formattedIntervals.map((interval) => '- $interval').join('\n')}';
     roomEntries.add(roomText);
   }
-  
-  return '$result\n\n${roomEntries.join('\n\n')}';
+
+  message += '\n${roomEntries.join('\n')}';
+  message += '\n\n__Заявка отправлена через Room Ranger.__';
+
+  return message;
 }
 
 /// Открывает Telegram с готовым сообщением для отправки.
@@ -111,7 +130,7 @@ Future<void> sendTelegramBookingMessage(String message) async {
   await launchUrl(Uri.parse(url));
 }
 
-/// Формирует текст для отображения выбранных дат (без приветствия и фразы "Хочу забронировать номер").
+/// Формирует текст для отображения выбранных дат (без приветствия и и прочих слов).
 String formatBookingDatesText({
   required Set<DateTime> selectedDays,
   required int selectedMonth,
@@ -126,7 +145,8 @@ String formatBookingDatesText({
   final hasMultipleYears = years.length > 1;
 
   final formattedIntervals = intervals
-      .map((interval) => _formatInterval(interval, currentYear, hasMultipleYears))
+      .map((interval) =>
+          _formatInterval(interval, currentYear, hasMultipleYears))
       .toList();
 
   if (formattedIntervals.length == 1) {
@@ -143,32 +163,35 @@ String formatAllBookingDatesText({
   required int selectedMonth,
 }) {
   // Проверяем, есть ли выбранные даты
-  final hasAnyDates = selectedDaysByRoom.values.any((dates) => dates.isNotEmpty);
+  final hasAnyDates =
+      selectedDaysByRoom.values.any((dates) => dates.isNotEmpty);
   if (!hasAnyDates) return '';
 
   // Формируем список комнат с датами
   final roomEntries = <String>[];
-  
+
   for (final entry in selectedDaysByRoom.entries) {
     final roomNumber = entry.key;
     final selectedDays = entry.value;
-    
+
     if (selectedDays.isEmpty) continue;
-    
+
     final sortedDays = selectedDays.toList()..sort((a, b) => a.compareTo(b));
     final intervals = _groupDaysToIntervals(sortedDays);
-    
+
     final years = intervals.map((interval) => interval.first.year).toSet();
     final currentYear = DateTime.now().year;
     final hasMultipleYears = years.length > 1;
-    
+
     final formattedIntervals = intervals
-        .map((interval) => _formatInterval(interval, currentYear, hasMultipleYears))
+        .map((interval) =>
+            _formatInterval(interval, currentYear, hasMultipleYears))
         .toList();
-    
-    final roomText = 'Номер $roomNumber:\n${formattedIntervals.map((interval) => '- $interval').join('\n')}';
+
+    final roomText =
+        'Номер $roomNumber:\n${formattedIntervals.map((interval) => '- $interval').join('\n')}';
     roomEntries.add(roomText);
   }
-  
+
   return roomEntries.join('\n\n');
 }

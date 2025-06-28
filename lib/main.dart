@@ -59,7 +59,8 @@ class _CalendarCellState extends State<CalendarCell> {
   }
 
   bool _isDateSelected(int day) {
-    return widget.selectedDays.contains(DateTime(widget.year, widget.month, day));
+    return widget.selectedDays
+        .contains(DateTime(widget.year, widget.month, day));
   }
 
   Widget _buildDayNumber(int dayNumber, int daysInMonth) {
@@ -347,10 +348,11 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
     if (_pickedRoom <= 0) {
       return 'Выберите номер';
     }
-    
+
     // Проверяем, есть ли выбранные даты в любой комнате
-    final hasAnyDates = widget.selectedDaysByRoom.values.any((dates) => dates.isNotEmpty);
-    
+    final hasAnyDates =
+        widget.selectedDaysByRoom.values.any((dates) => dates.isNotEmpty);
+
     if (!hasAnyDates) {
       return 'Выберите даты';
     } else {
@@ -359,6 +361,12 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
         selectedMonth: widget.selectedMonth,
       );
     }
+  }
+
+  String _getButtonText() {
+    return (widget.selectedDaysByRoom.values.any((dates) => dates.isNotEmpty))
+        ? 'Забронировать '
+        : 'Задать вопрос ';
   }
 
   @override
@@ -406,20 +414,25 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
                     backgroundColor: colorButtonBg,
                     foregroundColor: colorButtonFg,
                     padding: const EdgeInsets.all(0)),
-                child:
-                    Text('Забронировать', style: getButtonTextStyle(context)),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    const Icon(Icons.telegram_outlined),
+                    Text(_getButtonText(), style: getButtonTextStyle(context)),
+                  ],
+                ),
               ),
               Expanded(
                 child: Center(
                   child: Text(
                     overflow: TextOverflow.ellipsis,
-                    maxLines: 4,
+                    maxLines: 6,
                     softWrap: true,
-                    textAlign: TextAlign.center,
+                    // textAlign: TextAlign.center,
                     style: TextStyle(
                         fontSize: getBookingButtonFontSize(context),
                         color: Colors.grey),
-                    _getStatusMessage(),
+                    '${_getStatusMessage()}\n',
                   ),
                 ),
               ),
@@ -480,8 +493,9 @@ class _BookingContainerState extends State<BookingContainer> {
         setState(() => _bookedDates = {});
         return;
       }
-      
-      final bookedDates = await GoogleCalendarService.getBookedDates(_selectedRoom);
+
+      final bookedDates =
+          await GoogleCalendarService.getBookedDates(_selectedRoom);
       setState(() => _bookedDates = bookedDates);
     } catch (e) {
       if (kDebugMode) {
@@ -494,16 +508,16 @@ class _BookingContainerState extends State<BookingContainer> {
     setState(() {
       // Получаем или создаем набор дат для текущей комнаты
       final roomDates = _selectedDaysByRoom[_selectedRoom] ?? {};
-      
+
       if (roomDates.contains(date)) {
         roomDates.remove(date);
       } else {
         roomDates.add(date);
       }
-      
+
       // Обновляем даты для текущей комнаты
       _selectedDaysByRoom[_selectedRoom] = roomDates;
-      
+
       // Обновляем выбранный месяц и год
       _selectedMonth = date.month;
       _selectedYear = date.year;
