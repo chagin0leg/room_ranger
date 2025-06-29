@@ -269,34 +269,42 @@ class YearSelector extends StatelessWidget {
     final canGoLeft = selectedYear > currentYear;
     final canGoRight = selectedYear < maxYear;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Stack(
+      alignment: Alignment.center,
       children: [
-        IconButton(
-          onPressed: canGoLeft ? () => onYearChanged(selectedYear - 1) : null,
-          icon: Icon(
-            Icons.keyboard_arrow_left_rounded,
-            color: canGoLeft ? colorButtonFg : Colors.grey,
-          ),
-        ),
-        Expanded(
-          child: Center(
-            child: Text(
-              selectedYear.toString(),
-              style: TextStyle(
-                fontSize: getBaseWidth(context) / 100 * 6,
-                fontWeight: FontWeight.bold,
-                color: colorButtonFg,
-              ),
+        // Текст года по центру
+        FittedBox(
+          fit: BoxFit.contain,
+          child: Text(
+            selectedYear.toString(),
+            style: TextStyle(
+              fontSize: getBaseWidth(context) / 100 * 6,
+              fontWeight: FontWeight.bold,
+              color: colorButtonFg,
             ),
           ),
         ),
-        IconButton(
-          onPressed: canGoRight ? () => onYearChanged(selectedYear + 1) : null,
-          icon: Icon(
-            Icons.keyboard_arrow_right_rounded,
-            color: canGoRight ? colorButtonFg : Colors.grey,
-          ),
+        // Кнопки стрелок поверх текста
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+              onPressed:
+                  canGoLeft ? () => onYearChanged(selectedYear - 1) : null,
+              icon: Icon(
+                Icons.keyboard_arrow_left_rounded,
+                color: canGoLeft ? colorButtonFg : Colors.grey,
+              ),
+            ),
+            IconButton(
+              onPressed:
+                  canGoRight ? () => onYearChanged(selectedYear + 1) : null,
+              icon: Icon(
+                Icons.keyboard_arrow_right_rounded,
+                color: canGoRight ? colorButtonFg : Colors.grey,
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -365,8 +373,8 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
 
   String _getButtonText() {
     return (widget.selectedDaysByRoom.values.any((dates) => dates.isNotEmpty))
-        ? 'Забронировать '
-        : 'Задать вопрос ';
+        ? 'Забронировать  '
+        : 'Задать вопрос  ';
   }
 
   @override
@@ -413,9 +421,11 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
                 style: ElevatedButton.styleFrom(
                     backgroundColor: colorButtonBg,
                     foregroundColor: colorButtonFg,
-                    padding: const EdgeInsets.all(0)),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: getButtonTextStyle(context).fontSize! / 2,
+                    )),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Icon(Icons.telegram_outlined),
                     Text(_getButtonText(), style: getButtonTextStyle(context)),
