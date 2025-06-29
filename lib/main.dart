@@ -336,7 +336,7 @@ class BookingButtonContainer extends StatefulWidget {
 }
 
 class _BookingButtonContainerState extends State<BookingButtonContainer> {
-  int _pickedRoom = 0;
+  int _pickedRoom = 2;
 
   @override
   void initState() {
@@ -456,7 +456,7 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
   ElevatedButton roomPicker(int i) {
     return ElevatedButton(
       onPressed: () {
-        final newRoom = (_pickedRoom != i) ? i : 0;
+        final newRoom = i;
         setState(() => _pickedRoom = newRoom);
         widget.onRoomChanged(newRoom);
       },
@@ -486,7 +486,7 @@ class _BookingContainerState extends State<BookingContainer> {
   final Map<int, Set<DateTime>> _bookedDatesByRoom = {};
   int _selectedMonth = DateTime.now().month;
   int _selectedYear = DateTime.now().year;
-  int _selectedRoom = 0;
+  int _selectedRoom = 2;
   bool _isLoading = true;
 
   // Геттер для получения выбранных дат текущей комнаты
