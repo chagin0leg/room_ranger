@@ -336,7 +336,7 @@ class BookingButtonContainer extends StatefulWidget {
 }
 
 class _BookingButtonContainerState extends State<BookingButtonContainer> {
-  int _pickedRoom = 0;
+  int _pickedRoom = 2;
 
   @override
   void initState() {
@@ -456,7 +456,7 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
   ElevatedButton roomPicker(int i) {
     return ElevatedButton(
       onPressed: () {
-        final newRoom = (_pickedRoom != i) ? i : 0;
+        final newRoom = i;
         setState(() => _pickedRoom = newRoom);
         widget.onRoomChanged(newRoom);
       },
@@ -482,35 +482,64 @@ class BookingContainer extends StatefulWidget {
 class _BookingContainerState extends State<BookingContainer> {
   // Храним выбранные даты для каждой комнаты отдельно
   final Map<int, Set<DateTime>> _selectedDaysByRoom = {};
-  Set<DateTime> _bookedDates = {};
+  // Храним загруженные календари для каждой комнаты
+  final Map<int, Set<DateTime>> _bookedDatesByRoom = {};
   int _selectedMonth = DateTime.now().month;
   int _selectedYear = DateTime.now().year;
-  int _selectedRoom = 0;
+  int _selectedRoom = 2;
+  bool _isLoading = true;
 
   // Геттер для получения выбранных дат текущей комнаты
   Set<DateTime> get _selectedDays => _selectedDaysByRoom[_selectedRoom] ?? {};
 
+  // Геттер для получения занятых дат текущей комнаты
+  Set<DateTime> get _bookedDates => _bookedDatesByRoom[_selectedRoom] ?? {};
+
   @override
   void initState() {
     super.initState();
-    // Не загружаем календарь при запуске - ждем выбора комнаты
+    _loadAllCalendars();
   }
 
-  Future<void> _loadBookedDates() async {
-    try {
-      // Если комната не выбрана, не загружаем никакой календарь
-      if (_selectedRoom <= 0) {
-        setState(() => _bookedDates = {});
-        return;
-      }
+  Future<void> _loadAllCalendars() async {
+    setState(() => _isLoading = true);
 
-      final bookedDates =
-          await GoogleCalendarService.getBookedDates(_selectedRoom);
-      setState(() => _bookedDates = bookedDates);
+    try {
+      // Получаем список всех доступных комнат
+      final availableRooms = GoogleCalendarService.getAvailableRooms();
+
+      // Загружаем календари для всех комнат параллельно
+      final futures = availableRooms.map((roomNumber) async {
+        try {
+          final bookedDates =
+              await GoogleCalendarService.getBookedDates(roomNumber);
+          return MapEntry(roomNumber, bookedDates);
+        } catch (e) {
+          if (kDebugMode) {
+            print('Error loading calendar for room $roomNumber: $e');
+          }
+          // В случае ошибки возвращаем пустой набор
+          return MapEntry(roomNumber, <DateTime>{});
+        }
+      });
+
+      final results = await Future.wait(futures);
+
+      setState(() {
+        for (final entry in results) {
+          _bookedDatesByRoom[entry.key] = entry.value;
+        }
+        _isLoading = false;
+      });
+
+      if (kDebugMode) {
+        print('Loaded calendars for ${results.length} rooms');
+      }
     } catch (e) {
       if (kDebugMode) {
-        print('Error loading booked dates: $e');
+        print('Error loading calendars: $e');
       }
+      setState(() => _isLoading = false);
     }
   }
 
@@ -547,8 +576,7 @@ class _BookingContainerState extends State<BookingContainer> {
       _selectedRoom = room;
       // НЕ очищаем выбранные даты при смене комнаты - они сохраняются для каждой комнаты
     });
-    // Загружаем календарь для новой комнаты
-    _loadBookedDates();
+    // Календари уже загружены при запуске, не нужно перезагружать
   }
 
   @override
@@ -563,27 +591,31 @@ class _BookingContainerState extends State<BookingContainer> {
             BorderRadius.circular(getBookingContainerBorderRadius(context)),
       ),
       alignment: Alignment.center,
-      child: Column(
-        children: [
-          Expanded(
-            child: BookingButtonContainer(
-              selectedDaysByRoom: _selectedDaysByRoom,
-              selectedMonth: _selectedMonth,
-              selectedYear: _selectedYear,
-              onYearChanged: _onYearChanged,
-              onRoomChanged: _onRoomChanged,
-              selectedRoom: _selectedRoom,
+      child: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : Column(
+              children: [
+                Expanded(
+                  child: BookingButtonContainer(
+                    selectedDaysByRoom: _selectedDaysByRoom,
+                    selectedMonth: _selectedMonth,
+                    selectedYear: _selectedYear,
+                    onYearChanged: _onYearChanged,
+                    onRoomChanged: _onRoomChanged,
+                    selectedRoom: _selectedRoom,
+                  ),
+                ),
+                TableContainer(
+                  onDateSelected: _onDateSelected,
+                  bookedDates: _bookedDates,
+                  selectedDays: _selectedDays,
+                  selectedYear: _selectedYear,
+                  isEnabled: _selectedRoom > 0,
+                ),
+              ],
             ),
-          ),
-          TableContainer(
-            onDateSelected: _onDateSelected,
-            bookedDates: _bookedDates,
-            selectedDays: _selectedDays,
-            selectedYear: _selectedYear,
-            isEnabled: _selectedRoom > 0,
-          ),
-        ],
-      ),
     );
   }
 }
