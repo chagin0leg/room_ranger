@@ -395,7 +395,7 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [roomPicker(1), roomPicker(2)],
+                    children: [roomPicker(2), roomPicker(1)],
                   ),
                 ],
               ),
