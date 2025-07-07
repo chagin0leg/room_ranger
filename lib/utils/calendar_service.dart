@@ -6,10 +6,10 @@ import 'dart:async';
 class GoogleCalendarService {
   // Календари для каждой комнаты (номер комнаты -> URL календаря)
   static const Map<int, List<String>> _roomCalendars = {
-    1: ['https://sutochno.ru/calendar/ical/84214dde436a8dc4a443bdf5cb309110af06e4.ics'],
-    2: ['https://sutochno.ru/calendar/ical/bd04d8c9335677cf2d43bd99d531d142e61e45.ics'],
-    3: ['https://sutochno.ru/calendar/ical/84214dde436a8dc4a443bdf5cb309110af06e4.ics'],
-    4: ['https://sutochno.ru/calendar/ical/84214dde436a8dc4a443bdf5cb309110af06e4.ics'],
+    1: ['https://sutochno.ru/calendar/ical/bd04d8c9335677cf2d43bd99d531d142e61e45.ics'],
+    2: ['https://sutochno.ru/calendar/ical/84214dde436a8dc4a443bdf5cb309110af06e4.ics'],
+    3: ['https://sutochno.ru/calendar/ical/4085bd43645d78f472df22248e4566214771a88.ics'],
+    4: ['https://sutochno.ru/calendar/ical/7888d77a5bb2e094a5df222861fec42275d4494.ics'],
   };
 
   // Список прокси-серверов для обхода CORS
