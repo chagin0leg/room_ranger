@@ -51,8 +51,10 @@ jobs:
 
       - name: Build web
         run: flutter build web --release \
-                               --base-href /${{ github.event.repository.name }}/ \
-                               --dart-define=TELEGRAM_MANAGER_ID=MyZhiraf 
+                               --base-href /${{ github.event.repository.name }}/
+
+      - name: Download ICS files
+        run: bash download_ics.sh
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
