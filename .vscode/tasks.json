@@ -9,7 +9,11 @@
                 "./download_ics.sh"
             ],
             "presentation": {
-                "reveal": "always"
+                "reveal": "silent",
+                "panel": "shared",
+                "focus": false,
+                "clear": true,
+                "close": true
             }
         }
     ]
