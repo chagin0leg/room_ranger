@@ -14,16 +14,25 @@ jobs:
         with:
           ref: main
 
+      - name: Проверка наличия download_ics.sh на main
+        run: ls -l download_ics.sh
+
       - name: Copy download_ics.sh to temp
-        run: cp download_ics.sh /tmp/download_ics.sh
+        run: cp download_ics.sh /tmp/download_ics.sh && ls -l /tmp/download_ics.sh
 
       - name: Checkout gh-pages branch (для работы с ICS)
         uses: actions/checkout@v4
         with:
           ref: gh-pages
 
+      - name: Проверка наличия download_ics.sh в /tmp после checkout gh-pages
+        run: ls -l /tmp/download_ics.sh
+
       - name: Move script from temp to workspace
-        run: mv /tmp/download_ics.sh ./download_ics.sh
+        run: mv /tmp/download_ics.sh ./download_ics.sh && ls -l download_ics.sh
+
+      - name: Проверка наличия download_ics.sh перед запуском
+        run: ls -l download_ics.sh
 
       - name: Restore AdGuard VPN session cache
         uses: actions/cache@v4
