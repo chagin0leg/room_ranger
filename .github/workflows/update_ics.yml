@@ -9,10 +9,29 @@ jobs:
   update-ics:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout gh-pages branch
+      - name: Checkout main branch (для скрипта)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Upload download_ics.sh
+        uses: actions/upload-artifact@v4
+        with:
+          name: download-ics-script
+          path: download_ics.sh
+
+      - name: Checkout gh-pages branch (для работы с ICS)
         uses: actions/checkout@v4
         with:
           ref: gh-pages
+
+      - name: Download download_ics.sh
+        uses: actions/download-artifact@v4
+        with:
+          name: download-ics-script
+
+      - name: Move script to workspace
+        run: mv download_ics.sh* download_ics.sh
 
       - name: Restore AdGuard VPN session cache
         uses: actions/cache@v4
