@@ -126,7 +126,8 @@ String buildTelegramBookingMessage({
 
 /// Открывает Telegram с готовым сообщением для отправки.
 Future<void> sendTelegramBookingMessage(String message) async {
-  final url = 'https://t.me/MyZhiraf?text=${Uri.encodeComponent(message)}';
+  const managerId = String.fromEnvironment('TELEGRAM_MANAGER_ID');
+  final url = 'https://t.me/$managerId?text=${Uri.encodeComponent(message)}';
   await launchUrl(Uri.parse(url));
 }
 

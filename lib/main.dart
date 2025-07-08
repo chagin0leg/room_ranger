@@ -646,7 +646,9 @@ class _MainAppState extends State<MainApp> {
       buildNumber = packageInfo.buildNumber;
       if (kDebugMode) buildNumber += '+dev';
     } catch (e) {
-      print('Error loading app version: $e');
+      if (kDebugMode) {
+        print('Error loading app version: $e');
+      }
     }
     setState(() => _appVersion = 'v$version ($buildNumber)');
   }
