@@ -5,6 +5,7 @@ import 'package:room_ranger/utils/calendar_service.dart';
 import 'package:room_ranger/utils/telegram_utils.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:room_ranger/utils/styles.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // ========================================================================== //
 
@@ -506,13 +507,13 @@ class _BookingContainerState extends State<BookingContainer> {
 
     try {
       // Получаем список всех доступных комнат
-      final availableRooms = GoogleCalendarService.getAvailableRooms();
+      final availableRooms = CalendarService.getAvailableRooms();
 
       // Загружаем календари для всех комнат параллельно
       final futures = availableRooms.map((roomNumber) async {
         try {
           final bookedDates =
-              await GoogleCalendarService.getBookedDates(roomNumber);
+              await CalendarService.getBookedDates(roomNumber);
           return MapEntry(roomNumber, bookedDates);
         } catch (e) {
           if (kDebugMode) {
@@ -646,7 +647,9 @@ class _MainAppState extends State<MainApp> {
       buildNumber = packageInfo.buildNumber;
       if (kDebugMode) buildNumber += '+dev';
     } catch (e) {
-      print('Error loading app version: $e');
+      if (kDebugMode) {
+        print('Error loading app version: $e');
+      }
     }
     setState(() => _appVersion = 'v$version ($buildNumber)');
   }
@@ -684,6 +687,7 @@ class _MainAppState extends State<MainApp> {
 }
 
 // ========================================================================== //
-void main() {
+void main() async {
+  await dotenv.load();
   runApp(const MainApp());
 }

@@ -1,5 +1,6 @@
 import 'package:room_ranger/utils/date_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Вспомогательная функция для форматирования даты.
 String _formatDate(DateTime date) {
@@ -126,7 +127,8 @@ String buildTelegramBookingMessage({
 
 /// Открывает Telegram с готовым сообщением для отправки.
 Future<void> sendTelegramBookingMessage(String message) async {
-  final url = 'https://t.me/MyZhiraf?text=${Uri.encodeComponent(message)}';
+  final managerId = dotenv.env['TELEGRAM_MANAGER_ID'];
+  final url = 'https://t.me/$managerId?text=${Uri.encodeComponent(message)}';
   await launchUrl(Uri.parse(url));
 }
 

@@ -1,0 +1,30 @@
+name: Update ICS files
+
+on:
+  schedule:
+    - cron: '0 * * * *' # каждый час
+  workflow_dispatch:
+
+jobs:
+  update-ics:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+
+      - name: Download ICS files
+        run: bash download_ics.sh
+
+      - name: Check for changes
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          if ! git diff --quiet; then
+            git add ics/*.ics
+            git commit --amend --no-edit || git commit -m "Update ICS files"
+            git push origin gh-pages --force
+          else
+            echo "No changes in ICS files"
+          fi
