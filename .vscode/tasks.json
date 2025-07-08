@@ -1,0 +1,16 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Download ICS files",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "./download_ics.sh"
+            ],
+            "presentation": {
+                "reveal": "always"
+            }
+        }
+    ]
+}
