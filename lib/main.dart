@@ -64,12 +64,21 @@ class _CalendarCellState extends State<CalendarCell> {
         .contains(DateTime(widget.year, widget.month, day));
   }
 
+  bool _isPastDate(int day) {
+    final now = DateTime.now();
+    final date = DateTime(widget.year, widget.month, day);
+    return date.isBefore(DateTime(now.year, now.month, now.day));
+  }
+
   Widget _buildDayNumber(int dayNumber, int daysInMonth) {
     final isSelected = _isDateSelected(dayNumber);
     final isBooked = _isDateBooked(dayNumber);
+    final isPast = _isPastDate(dayNumber);
     Color color = colorTransparent;
     if (isBooked) color = colorBooked;
     if (isSelected) color = colorSelected;
+    Color? textColor = getDayTextStyle(context).color;
+    if (isPast) textColor = Colors.grey;
 
     if (dayNumber < 1 || dayNumber > daysInMonth) {
       return Expanded(
@@ -88,7 +97,7 @@ class _CalendarCellState extends State<CalendarCell> {
           ),
           Text(
             dayNumber.toString(),
-            style: getDayTextStyle(context),
+            style: getDayTextStyle(context).copyWith(color: textColor),
           ),
         ],
       ),
@@ -153,6 +162,7 @@ class _CalendarCellState extends State<CalendarCell> {
   void _toggleDaySelection(int dayNumber, int daysInMonth) {
     if (dayNumber < 1 || dayNumber > daysInMonth) return;
     if (_isDateBooked(dayNumber)) return;
+    if (_isPastDate(dayNumber)) return;
     final date = DateTime(widget.year, widget.month, dayNumber);
     widget.onDateSelected(date);
   }
@@ -167,6 +177,7 @@ class _CalendarCellState extends State<CalendarCell> {
     final dayNumber = row * 7 + col - firstWeekday + 2;
     if (row < 0 || row > 5 || col < 0 || col > 6) return null;
     if (dayNumber < 1 || dayNumber > daysInMonth) return null;
+    if (_isPastDate(dayNumber)) return null;
     return dayNumber;
   }
 
@@ -512,8 +523,7 @@ class _BookingContainerState extends State<BookingContainer> {
       // Загружаем календари для всех комнат параллельно
       final futures = availableRooms.map((roomNumber) async {
         try {
-          final bookedDates =
-              await CalendarService.getBookedDates(roomNumber);
+          final bookedDates = await CalendarService.getBookedDates(roomNumber);
           return MapEntry(roomNumber, bookedDates);
         } catch (e) {
           if (kDebugMode) {
