@@ -620,7 +620,7 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
               ),
             ),
             Text(
-              '${formatPrice(finalPrice)}₽',
+              '${formatPrice(finalPrice)}${dotenv.env['CURRENCY']}',
               style: getPriceTotalTextStyle(context),
             ),
           ],

@@ -1,21 +1,24 @@
 import 'package:room_ranger/utils/date_utils.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Возвращает базовую цену за день для указанного месяца
 int getBasePriceForMonth(int month) {
-  switch (month) {
-    case 7: // Июль
-      return 3300;
-    case 8: // Август
-      return 3800;
-    case 9: // Сентябрь
-      return 2700;
-    case 10: // Октябрь
-    case 11: // Ноябрь
-    case 12: // Декабрь
-      return 1800;
-    default:
-      return 1800; // Цена по умолчанию для остальных месяцев
-  }
+  final priceMap = {
+    1: dotenv.env['PRICE_JANUARY'] ?? '',
+    2: dotenv.env['PRICE_FEBRUARY'] ?? '',
+    3: dotenv.env['PRICE_MARCH'] ?? '',
+    4: dotenv.env['PRICE_APRIL'] ?? '',
+    5: dotenv.env['PRICE_MAY'] ?? '',
+    6: dotenv.env['PRICE_JUNE'] ?? '',
+    7: dotenv.env['PRICE_JULY'] ?? '',
+    8: dotenv.env['PRICE_AUGUST'] ?? '',
+    9: dotenv.env['PRICE_SEPTEMBER'] ?? '',
+    10: dotenv.env['PRICE_OCTOBER'] ?? '',
+    11: dotenv.env['PRICE_NOVEMBER'] ?? '',
+    12: dotenv.env['PRICE_DECEMBER'] ?? '',
+  };
+  
+  return int.tryParse(priceMap[month] ?? '') ?? 0;
 }
 
 /// Возвращает название месяца с ценой
@@ -34,10 +37,11 @@ int calculateTotalPrice(List<DateTime> dates) {
   return total;
 }
 
-/// Рассчитывает итоговую стоимость с учетом скидки 10%
+/// Рассчитывает итоговую стоимость с учетом скидки
 int calculateFinalPrice(List<DateTime> dates) {
   final basePrice = calculateTotalPrice(dates);
-  final discount = (basePrice * 0.1).round();
+  final discountPercent = int.tryParse(dotenv.env['DISCOUNT_PERCENT'] ?? '0') ?? 0;
+  final discount = (basePrice * discountPercent / 100).round();
   return basePrice - discount;
 }
 
@@ -79,8 +83,10 @@ String getFullPriceInfo(List<DateTime> dates) {
   final basePrice = calculateTotalPrice(dates);
   final finalPrice = calculateFinalPrice(dates);
   final discount = basePrice - finalPrice;
+  final currency = dotenv.env['CURRENCY'];
+  final discountPercent = int.tryParse(dotenv.env['DISCOUNT_PERCENT'] ?? '0') ?? 0;
   
-  return 'Стоимость: ${formatPrice(basePrice)}₽\n'
-         'Скидка 10%: -${formatPrice(discount)}₽\n'
-         'Итого: ${formatPrice(finalPrice)}₽';
+  return 'Стоимость: ${formatPrice(basePrice)}$currency\n'
+         'Скидка $discountPercent%: -${formatPrice(discount)}$currency\n'
+         'Итого: ${formatPrice(finalPrice)}$currency';
 } 
