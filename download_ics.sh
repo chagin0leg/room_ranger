@@ -2,12 +2,26 @@
 
 set -e
 
+if [ ! -f .env ]; then
+  echo "❌ .env file not found!" >&2
+  exit 2
+fi
+
 OUT_DIR="assets/data"
-mkdir -p "$OUT_DIR"
+if ! mkdir -p "$OUT_DIR"; then
+  echo "❌ Failed to create directory $OUT_DIR" >&2
+  exit 3
+fi
 
 MAX_RETRIES=10
 SLEEP_BETWEEN=1
 TIMEOUT=2
+
+ics_count=$(grep -c '\.ics' .env || true)
+if [ "$ics_count" -eq 0 ]; then
+  echo "❌ No .ics links found in .env" >&2
+  exit 4
+fi
 
 grep '\.ics' .env | cut -d= -f2- | tr -d '\r' | while read -r url; do
   url=$(echo "$url" | xargs)

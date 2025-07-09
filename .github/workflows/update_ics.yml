@@ -15,7 +15,9 @@ jobs:
           ref: main
 
       - name: Copy download_ics.sh to temp
-        run: cp download_ics.sh /tmp/download_ics.sh
+        run: |
+          cp download_ics.sh /tmp/download_ics.sh
+          cp .env /tmp/.env
 
       - name: Checkout gh-pages branch
         uses: actions/checkout@v4
@@ -23,7 +25,9 @@ jobs:
           ref: gh-pages
 
       - name: Move script from temp to workspace
-        run: mv /tmp/download_ics.sh ./download_ics.sh
+        run: |
+          mv /tmp/download_ics.sh assets/download_ics.sh
+          mv /tmp/.env assets/.env
 
       - name: Install, Login and Connect to VPN (background)
         run: |
@@ -34,6 +38,7 @@ jobs:
 
       - name: Download ICS files
         run: bash download_ics.sh
+        working-directory: assets
 
       - name: Disconnect VPN
         run: |
@@ -45,9 +50,9 @@ jobs:
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
           if ! git diff --quiet; then
-            git add assets/data/*.ics
-            git commit --amend --no-edit || git commit -m "Update ICS files"
-            git push origin gh-pages --force
+            git add assets/assets/data/*.ics
+            git commit -m "Update ICS files"
+            git push origin gh-pages
           else
             echo "No changes in ICS files"
           fi
