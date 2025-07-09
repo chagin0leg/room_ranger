@@ -14,10 +14,24 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Cache Flutter SDK
+        uses: actions/cache@v4
+        with:
+          path: ~/.flutter
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+
+      - name: Save Flutter SDK cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.flutter
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.yaml') }}
 
       - name: Auto increment build number
         id: version
@@ -49,12 +63,23 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build web
-        run: flutter build web --release \
-                               --base-href /${{ github.event.repository.name }}/
+      - name: Install, Login and Connect to VPN (background)
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/AdguardTeam/AdGuardVPNCLI/master/scripts/release/install.sh | sh -s -- -v -a y
+          adguardvpn-cli login --username ${{ secrets.ADGUARD_VPN_USERNAME }} --password ${{ secrets.ADGUARD_VPN_PASSWORD }}
+          adguardvpn-cli connect -y -6 &
+          echo $! > vpn.pid
 
       - name: Download ICS files
         run: bash download_ics.sh
+
+      - name: Disconnect VPN
+        run: |
+          kill $(cat vpn.pid) || true
+          adguardvpn-cli disconnect || true
+
+      - name: Build web
+        run: flutter build web --release --base-href /${{ github.event.repository.name }}/
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4

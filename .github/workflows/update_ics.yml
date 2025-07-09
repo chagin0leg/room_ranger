@@ -2,27 +2,50 @@ name: Update ICS files
 
 on:
   schedule:
-    - cron: '0 * * * *' # каждый час
+    - cron: '0 */2 * * *'
   workflow_dispatch:
 
 jobs:
   update-ics:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout main branch (script)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Copy download_ics.sh to temp
+        run: cp download_ics.sh /tmp/download_ics.sh
+
       - name: Checkout gh-pages branch
         uses: actions/checkout@v4
         with:
           ref: gh-pages
 
+      - name: Move script from temp to workspace
+        run: mv /tmp/download_ics.sh ./download_ics.sh
+
+      - name: Install, Login and Connect to VPN (background)
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/AdguardTeam/AdGuardVPNCLI/master/scripts/release/install.sh | sh -s -- -v -a y
+          adguardvpn-cli login --username ${{ secrets.ADGUARD_VPN_USERNAME }} --password ${{ secrets.ADGUARD_VPN_PASSWORD }}
+          adguardvpn-cli connect -y -6 > /dev/null 2>&1 &
+          echo $! > vpn.pid
+
       - name: Download ICS files
         run: bash download_ics.sh
+
+      - name: Disconnect VPN
+        run: |
+          kill $(cat vpn.pid) || true
+          adguardvpn-cli disconnect || true
 
       - name: Check for changes
         run: |
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
           if ! git diff --quiet; then
-            git add ics/*.ics
+            git add assets/data/*.ics
             git commit --amend --no-edit || git commit -m "Update ICS files"
             git push origin gh-pages --force
           else
