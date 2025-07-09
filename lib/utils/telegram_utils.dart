@@ -2,6 +2,7 @@ import 'package:room_ranger/utils/date_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:room_ranger/utils/typedef.dart';
+import 'package:room_ranger/utils/price_utils.dart';
 
 /// Вспомогательная функция для форматирования даты.
 String _formatDate(DateTime date) {
@@ -122,6 +123,18 @@ String buildTelegramBookingMessage({
   }
 
   message += '\n${roomEntries.join('\n')}';
+  
+  // Добавляем информацию о ценах
+  final allDates = <DateTime>[];
+  for (final dates in selectedDaysByRoom.values) {
+    allDates.addAll(dates.map((day) => day.date));
+  }
+  
+  if (allDates.isNotEmpty) {
+    final priceInfo = getFullPriceInfo(allDates);
+    message += '\n\n$priceInfo';
+  }
+  
   message += '\n\n__Заявка отправлена через Room Ranger.__';
 
   return message;

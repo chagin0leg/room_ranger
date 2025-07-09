@@ -7,6 +7,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:room_ranger/utils/styles.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:room_ranger/utils/typedef.dart';
+import 'package:room_ranger/utils/price_utils.dart';
 
 // ========================================================================== //
 
@@ -584,6 +585,14 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
   }
 
   ElevatedButton roomPicker(int i) {
+    // Получаем выбранные даты для этой комнаты
+    final roomDates = widget.selectedDaysByRoom[i] ?? [];
+    final dates = roomDates.map((day) => day.date).toList();
+
+    // Рассчитываем цены
+    final basePrice = calculateTotalPrice(dates);
+    final finalPrice = calculateFinalPrice(dates);
+
     return ElevatedButton(
       onPressed: () {
         final newRoom = i;
@@ -596,7 +605,27 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
         minimumSize: Size.square(getRoomButtonSize(context)),
         padding: const EdgeInsets.all(0),
       ),
-      child: Text(i.toString(), style: getButtonTextStyle(context)),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (dates.isEmpty) ...[
+            Text(i.toString(), style: getButtonTextStyle(context)),
+          ] else ...[
+            Text(
+              formatPrice(basePrice),
+              style: getPriceTextStyle(context).copyWith(
+                decoration: TextDecoration.lineThrough,
+                decorationColor: Colors.redAccent,
+                decorationThickness: getBaseWidth(context) / 100 * 0.5,
+              ),
+            ),
+            Text(
+              '${formatPrice(finalPrice)}₽',
+              style: getPriceTotalTextStyle(context),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

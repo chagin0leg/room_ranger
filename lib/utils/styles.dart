@@ -57,6 +57,18 @@ TextStyle getVersionTextStyle(BuildContext context) => TextStyle(
   color: colorButtonFg,
 );
 
+TextStyle getPriceTextStyle(BuildContext context) => TextStyle(
+  fontSize: getBaseWidth(context) / 100 * 2.5,
+  fontWeight: FontWeight.w500,
+  color: colorButtonFg,
+);
+
+TextStyle getPriceTotalTextStyle(BuildContext context) => TextStyle(
+  fontSize: getBaseWidth(context) / 100 * 2.8,
+  fontWeight: FontWeight.bold,
+  color: colorButtonFg,
+);
+
 // ========== RELATIVE SIZES ============= //
 
 // Функции для размеров ячеек календаря и других элементов
