@@ -63,12 +63,6 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Restore AdGuard VPN session cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.config/AdGuardVPN
-          key: ${{ runner.os }}-adguardvpn-session
-
       - name: Install, Login and Connect to VPN (background)
         run: |
           curl -fsSL https://raw.githubusercontent.com/AdguardTeam/AdGuardVPNCLI/master/scripts/release/install.sh | sh -s -- -v -a y
@@ -83,12 +77,6 @@ jobs:
         run: |
           kill $(cat vpn.pid) || true
           adguardvpn-cli disconnect || true
-
-      - name: Save AdGuard VPN session cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.config/AdGuardVPN
-          key: ${{ runner.os }}-adguardvpn-session 
 
       - name: Build web
         run: flutter build web --release --base-href /${{ github.event.repository.name }}/
