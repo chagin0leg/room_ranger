@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:icalendar_parser/icalendar_parser.dart';
@@ -157,11 +159,11 @@ class PriceCalendarService {
       );
 
       if (kDebugMode) {
-        print('Prices loaded from calendar: ${pricesByDate.length} dates');
+        log('[PRICES] Prices loaded from calendar: ${pricesByDate.length} dates');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error loading prices from calendar: $e');
+        log('[PRICES] Error loading prices from calendar: $e');
       }
       // Fallback на пустые цены
       _priceData = PriceCalendarData(

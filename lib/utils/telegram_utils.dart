@@ -1,7 +1,7 @@
 import 'package:room_ranger/utils/date_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:room_ranger/utils/typedef.dart';
+import 'package:room_ranger/utils/calendar_day.dart';
 import 'package:room_ranger/utils/price_utils.dart';
 
 /// Вспомогательная функция для форматирования даты.
@@ -66,7 +66,7 @@ String _formatInterval(
 
 /// Формирует текст сообщения для бронирования на основе выбранных дней для всех комнат.
 String buildTelegramBookingMessage({
-  required Map<int, List<GroupedDay>> selectedDaysByRoom,
+  required Map<int, List<CalendarDay>> daysByRoom,
   required int selectedMonth,
 }) {
   String getGreeting() => switch (DateTime.now().hour) {
@@ -75,68 +75,47 @@ String buildTelegramBookingMessage({
         >= 17 && < 23 => 'Добрый вечер!',
         _ => 'Доброй ночи!'
       };
-
-  // Подсчитываем количество комнат с выбранными датами
-  final roomsWithDates = selectedDaysByRoom.entries
-      .where((entry) => entry.value.isNotEmpty)
+  final roomsWithDates = daysByRoom.entries
+      .where((entry) => entry.value.any((d) => d.status == DayStatus.selected))
       .length;
-
   String getBookingPhrase() {
     return (roomsWithDates == 0)
         ? 'У меня есть несколько вопросов по бронированию:\n1. '
         : 'Хотелось бы забронировать номер${roomsWithDates == 1 ? '' : 'а'} на следующие даты:\n';
   }
-
   String message = '${getGreeting()}\n${getBookingPhrase()}';
-
-  // Проверяем, есть ли выбранные даты
   final hasAnyDates =
-      selectedDaysByRoom.values.any((dates) => dates.isNotEmpty);
+      daysByRoom.values.any((days) => days.any((d) => d.status == DayStatus.selected));
   if (!hasAnyDates) {
     return message;
   }
-
-  // Формируем список комнат с датами
   final roomEntries = <String>[];
-
-  for (final entry in selectedDaysByRoom.entries) {
+  for (final entry in daysByRoom.entries) {
     final roomNumber = entry.key;
-    final selectedDays = entry.value;
-
+    final selectedDays = entry.value.where((d) => d.status == DayStatus.selected).toList();
     if (selectedDays.isEmpty) continue;
-
-    final sortedDays = selectedDays.map((day) => day.date).toList()
-      ..sort((a, b) => a.compareTo(b));
+    final sortedDays = selectedDays.map((day) => day.date).toList()..sort((a, b) => a.compareTo(b));
     final intervals = _groupDaysToIntervals(sortedDays);
-
     final years = intervals.map((interval) => interval.first.year).toSet();
     final currentYear = DateTime.now().year;
     final hasMultipleYears = years.length > 1;
-
     final formattedIntervals = intervals.map((interval) {
       return _formatInterval(interval, currentYear, hasMultipleYears);
     }).toList();
-
     final roomText =
         'Номер $roomNumber:\n${formattedIntervals.map((interval) => '- $interval').join('\n')}';
     roomEntries.add(roomText);
   }
-
   message += '\n${roomEntries.join('\n')}';
-  
-  // Добавляем информацию о ценах
-  final allDates = <DateTime>[];
-  for (final dates in selectedDaysByRoom.values) {
-    allDates.addAll(dates.map((day) => day.date));
+  final allSelectedDays = <CalendarDay>[];
+  for (final days in daysByRoom.values) {
+    allSelectedDays.addAll(days.where((d) => d.status == DayStatus.selected));
   }
-  
-  if (allDates.isNotEmpty) {
-    final priceInfo = getFullPriceInfo(allDates);
+  if (allSelectedDays.isNotEmpty) {
+    final priceInfo = getFullPriceInfo(allSelectedDays);
     message += '\n\n$priceInfo';
   }
-  
   message += '\n\n__Заявка отправлена через Room Ranger.__';
-
   return message;
 }
 
@@ -149,67 +128,51 @@ Future<void> sendTelegramBookingMessage(String message) async {
 
 /// Формирует текст для отображения выбранных дат (без приветствия и и прочих слов).
 String formatBookingDatesText({
-  required Set<DateTime> selectedDays,
+  required List<CalendarDay> selectedDays,
   required int selectedMonth,
 }) {
   if (selectedDays.isEmpty) return '';
-
-  final sortedDays = selectedDays.toList()..sort((a, b) => a.compareTo(b));
+  final sortedDays = selectedDays.map((day) => day.date).toList()..sort((a, b) => a.compareTo(b));
   final intervals = _groupDaysToIntervals(sortedDays);
-
   final years = intervals.map((interval) => interval.first.year).toSet();
   final currentYear = DateTime.now().year;
   final hasMultipleYears = years.length > 1;
-
   final formattedIntervals = intervals
       .map((interval) =>
           _formatInterval(interval, currentYear, hasMultipleYears))
       .toList();
-
   if (formattedIntervals.length == 1) {
     return formattedIntervals.first;
   }
-
   final lastInterval = formattedIntervals.removeLast();
   return '${formattedIntervals.join(", ")} и $lastInterval';
 }
 
 /// Формирует текст для отображения выбранных дат всех комнат (без приветствия).
 String formatAllBookingDatesText({
-  required Map<int, List<GroupedDay>> selectedDaysByRoom,
+  required Map<int, List<CalendarDay>> daysByRoom,
   required int selectedMonth,
 }) {
-  // Проверяем, есть ли выбранные даты
   final hasAnyDates =
-      selectedDaysByRoom.values.any((dates) => dates.isNotEmpty);
+      daysByRoom.values.any((days) => days.any((d) => d.status == DayStatus.selected));
   if (!hasAnyDates) return '';
-
-  // Формируем список комнат с датами
   final roomEntries = <String>[];
-
-  for (final entry in selectedDaysByRoom.entries) {
+  for (final entry in daysByRoom.entries) {
     final roomNumber = entry.key;
-    final selectedDays = entry.value;
-
+    final selectedDays = entry.value.where((d) => d.status == DayStatus.selected).toList();
     if (selectedDays.isEmpty) continue;
-
-    final sortedDays = selectedDays.map((day) => day.date).toList()
-      ..sort((a, b) => a.compareTo(b));
+    final sortedDays = selectedDays.map((day) => day.date).toList()..sort((a, b) => a.compareTo(b));
     final intervals = _groupDaysToIntervals(sortedDays);
-
     final years = intervals.map((interval) => interval.first.year).toSet();
     final currentYear = DateTime.now().year;
     final hasMultipleYears = years.length > 1;
-
     final formattedIntervals = intervals
         .map((interval) =>
             _formatInterval(interval, currentYear, hasMultipleYears))
         .toList();
-
     final roomText =
         'Номер $roomNumber:\n${formattedIntervals.map((interval) => '- $interval').join('\n')}';
     roomEntries.add(roomText);
   }
-
   return roomEntries.join('\n\n');
 }
