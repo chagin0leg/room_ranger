@@ -1,6 +1,8 @@
 import 'package:room_ranger/utils/date_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:room_ranger/utils/typedef.dart';
+import 'package:room_ranger/utils/price_utils.dart';
 
 /// Вспомогательная функция для форматирования даты.
 String _formatDate(DateTime date) {
@@ -64,7 +66,7 @@ String _formatInterval(
 
 /// Формирует текст сообщения для бронирования на основе выбранных дней для всех комнат.
 String buildTelegramBookingMessage({
-  required Map<int, Set<DateTime>> selectedDaysByRoom,
+  required Map<int, List<GroupedDay>> selectedDaysByRoom,
   required int selectedMonth,
 }) {
   String getGreeting() => switch (DateTime.now().hour) {
@@ -103,7 +105,8 @@ String buildTelegramBookingMessage({
 
     if (selectedDays.isEmpty) continue;
 
-    final sortedDays = selectedDays.toList()..sort((a, b) => a.compareTo(b));
+    final sortedDays = selectedDays.map((day) => day.date).toList()
+      ..sort((a, b) => a.compareTo(b));
     final intervals = _groupDaysToIntervals(sortedDays);
 
     final years = intervals.map((interval) => interval.first.year).toSet();
@@ -120,6 +123,18 @@ String buildTelegramBookingMessage({
   }
 
   message += '\n${roomEntries.join('\n')}';
+  
+  // Добавляем информацию о ценах
+  final allDates = <DateTime>[];
+  for (final dates in selectedDaysByRoom.values) {
+    allDates.addAll(dates.map((day) => day.date));
+  }
+  
+  if (allDates.isNotEmpty) {
+    final priceInfo = getFullPriceInfo(allDates);
+    message += '\n\n$priceInfo';
+  }
+  
   message += '\n\n__Заявка отправлена через Room Ranger.__';
 
   return message;
@@ -161,7 +176,7 @@ String formatBookingDatesText({
 
 /// Формирует текст для отображения выбранных дат всех комнат (без приветствия).
 String formatAllBookingDatesText({
-  required Map<int, Set<DateTime>> selectedDaysByRoom,
+  required Map<int, List<GroupedDay>> selectedDaysByRoom,
   required int selectedMonth,
 }) {
   // Проверяем, есть ли выбранные даты
@@ -178,7 +193,8 @@ String formatAllBookingDatesText({
 
     if (selectedDays.isEmpty) continue;
 
-    final sortedDays = selectedDays.toList()..sort((a, b) => a.compareTo(b));
+    final sortedDays = selectedDays.map((day) => day.date).toList()
+      ..sort((a, b) => a.compareTo(b));
     final intervals = _groupDaysToIntervals(sortedDays);
 
     final years = intervals.map((interval) => interval.first.year).toSet();
