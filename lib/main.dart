@@ -349,21 +349,22 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
     if (_pickedRoom <= 0) return 'Выберите номер';
     
     final hasSelected = widget.daysByRoom.values.any((days) => days.any((d) => d.status == DayStatus.selected));
-    final hasInsufficientNights = widget.daysByRoom.values.any((days) => days.any((d) => d.status == DayStatus.insufficientNights));
-    
-    if (!hasSelected && !hasInsufficientNights) return 'Выберите даты';
-    if (hasInsufficientNights) return 'Минимум ${CalendarDayService.getMinNights()} ночей';
+    final minNights = CalendarDayService.getMinNights();  
+
+    if (!hasSelected && !hasInsufficientNights()) return 'Выберите даты';
+    if (hasInsufficientNights()) return 'Мин. $minNights ${getNightWord(minNights)}';
     return 'Даты выбраны';
   }
 
   String _getButtonText() {
     final hasSelected = widget.daysByRoom.values.any((days) => days.any((d) => d.status == DayStatus.selected));
-    final hasInsufficientNights = widget.daysByRoom.values.any((days) => days.any((d) => d.status == DayStatus.insufficientNights));
-    
+    final minNights = CalendarDayService.getMinNights();
     if (hasSelected) return 'Забронировать  ';
-    if (hasInsufficientNights) return 'Недостаточно ночей  ';
+    if (hasInsufficientNights()) return 'Мин. $minNights ${getNightWord(minNights)}  ';
     return 'Задать вопрос  ';
   }
+
+  bool hasInsufficientNights() => widget.daysByRoom.values.any((days) => days.any((d) => d.status == DayStatus.insufficientNights));
 
   @override
   Widget build(BuildContext context) {
@@ -417,9 +418,11 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
                       horizontal: getButtonTextStyle(context).fontSize! / 2,
                     )),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: hasInsufficientNights() ? MainAxisAlignment.center : MainAxisAlignment.spaceBetween,
                   children: [
-                    const Icon(Icons.telegram_outlined),
+                    if (!hasInsufficientNights()) ...[
+                      const Icon(Icons.telegram_outlined),
+                    ],
                     Text(_getButtonText(), style: getButtonTextStyle(context)),
                   ],
                 ),
@@ -548,7 +551,7 @@ class _BookingContainerState extends State<BookingContainer> {
       _isLoading = false;
     } catch (e) {
       if (kDebugMode) {
-        print('Error loading calendars: $e');
+        log('[loadData] Error loading calendars: $e');
       }
       setState(() => _isLoading = false);
     }
@@ -675,9 +678,10 @@ class _BookingContainerState extends State<BookingContainer> {
                     selectedRoom: _selectedRoom,
                   ),
                 ),
-                // Диагностика: выводим количество дней
                 Builder(builder: (context) {
-                  if (kDebugMode) print('TableContainer: days count =  ${_days.length}');
+                  if (kDebugMode) {
+                    log('[CALENDAR] TableContainer: days count = ${_days.length}');
+                  }
                   return TableContainer(
                     onDateSelected: _onDateSelected,
                     days: _days,
@@ -718,7 +722,7 @@ class _MainAppState extends State<MainApp> {
       if (kDebugMode) buildNumber += '+dev';
     } catch (e) {
       if (kDebugMode) {
-        print('Error loading app version: $e');
+        log('[loadApp] Error loading app version: $e');
       }
     }
     setState(() => _appVersion = 'v$version ($buildNumber)');

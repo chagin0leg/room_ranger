@@ -46,5 +46,10 @@ String getMonthName(int month, GrammaticalCase grammaticalCase) {
   return monthData[0] /*root*/ + monthData[grammaticalCase.value] /*ending*/;
 }
 
-
-
+/// Returns the correct form of the word "ночь" depending on the number
+String getNightWord(int count) => (count % 10 == 1 && count % 100 != 11)
+    ? 'ночь'
+    : (count % 10 >= 2 && count % 10 <= 4) &&
+            (count % 100 < 10 || count % 100 >= 20)
+        ? 'ночи'
+        : 'ночей';
