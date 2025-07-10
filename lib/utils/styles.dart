@@ -20,6 +20,7 @@ double getBaseHeight(BuildContext context) {
 
 const Color colorBooked = Color(0xFFed8f75);
 const Color colorSelected = Color(0xFFd2dfb3);
+const Color colorInsufficientNights = Color(0xFFFFD700); // Желтый цвет
 const Color colorTransparent = Color(0x00000000);
 const Color colorTableCell = Color(0xFFfbf4e2);
 const Color colorBookingBg = Color(0xFFebeed3);

@@ -1,4 +1,4 @@
-enum DayStatus { free, booked, selected, unavailable }
+enum DayStatus { free, booked, selected, unavailable, insufficientNights }
 
 enum DayPosition { single, start, middle, end }
 

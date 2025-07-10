@@ -1,5 +1,6 @@
 import 'calendar_day.dart';
 import 'package:room_ranger/utils/price_calendar_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class CalendarDayService {
   /// Генерирует Map<room, List<CalendarDay>> для всех комнат
@@ -56,13 +57,13 @@ class CalendarDayService {
       current = current.add(const Duration(days: 1));
     }
     // После генерации дней вычисляем позиции и groupId для booked и selected
-    _applyGroupPositions(days, DayStatus.booked);
-    _applyGroupPositions(days, DayStatus.selected);
+    applyGroupPositions(days, DayStatus.booked);
+    applyGroupPositions(days, DayStatus.selected);
     return days;
   }
 
   /// Вычисляет позиции и groupId для дней с указанным статусом
-  static void _applyGroupPositions(List<CalendarDay> days, DayStatus status) {
+  static void applyGroupPositions(List<CalendarDay> days, DayStatus status) {
     // Группируем последовательные дни
     final groupList = <List<int>>[]; // индексы в days
     List<int> currentGroup = [];
@@ -98,6 +99,42 @@ class CalendarDayService {
           pos = DayPosition.middle;
         }
         days[idx] = days[idx].copyWith(position: pos, groupId: groupId);
+      }
+    }
+  }
+
+  /// Получает минимальное количество ночей из переменных окружения
+  static int getMinNights() {
+    return int.tryParse(dotenv.env['MIN_NIGHTS'] ?? '4') ?? 4;
+  }
+
+  /// Обновляет статусы выбранных дней с учетом минимального количества ночей
+  static void updateSelectedDaysWithMinNights(Map<int, List<CalendarDay>> daysByRoom) {
+    final minNights = getMinNights();
+    
+    for (final entry in daysByRoom.entries) {
+      final roomDays = entry.value;
+      final selectedGroups = <String, List<CalendarDay>>{};
+      
+      // Группируем выбранные дни по groupId
+      for (final day in roomDays) {
+        if (day.status == DayStatus.selected && day.groupId != null) {
+          selectedGroups.putIfAbsent(day.groupId!, () => []).add(day);
+        }
+      }
+      
+      // Проверяем каждую группу на соответствие минимальному количеству ночей
+      for (final group in selectedGroups.values) {
+        final nights = group.length;
+        final newStatus = nights >= minNights ? DayStatus.selected : DayStatus.insufficientNights;
+        
+        // Обновляем статусы всех дней в группе
+        for (final day in group) {
+          final dayIndex = roomDays.indexWhere((d) => d.date == day.date);
+          if (dayIndex != -1) {
+            roomDays[dayIndex] = roomDays[dayIndex].copyWith(status: newStatus);
+          }
+        }
       }
     }
   }
