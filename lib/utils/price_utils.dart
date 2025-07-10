@@ -1,48 +1,30 @@
 import 'package:room_ranger/utils/date_utils.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:room_ranger/utils/price_calendar_service.dart';
 
-/// Возвращает базовую цену за день для указанного месяца
-int getBasePriceForMonth(int month) {
-  final priceMap = {
-    1: dotenv.env['PRICE_JANUARY'] ?? '',
-    2: dotenv.env['PRICE_FEBRUARY'] ?? '',
-    3: dotenv.env['PRICE_MARCH'] ?? '',
-    4: dotenv.env['PRICE_APRIL'] ?? '',
-    5: dotenv.env['PRICE_MAY'] ?? '',
-    6: dotenv.env['PRICE_JUNE'] ?? '',
-    7: dotenv.env['PRICE_JULY'] ?? '',
-    8: dotenv.env['PRICE_AUGUST'] ?? '',
-    9: dotenv.env['PRICE_SEPTEMBER'] ?? '',
-    10: dotenv.env['PRICE_OCTOBER'] ?? '',
-    11: dotenv.env['PRICE_NOVEMBER'] ?? '',
-    12: dotenv.env['PRICE_DECEMBER'] ?? '',
-  };
-  
-  return int.tryParse(priceMap[month] ?? '') ?? 0;
-}
-
-/// Возвращает название месяца с ценой
-String getMonthWithPrice(int month) {
-  final price = getBasePriceForMonth(month);
-  final monthName = getMonthName(month, GrammaticalCase.nominative);
-  return '$monthName ${price.toStringAsFixed(0)}₽';
+/// Возвращает базовую цену за день для указанной даты
+int getBasePriceForDate(DateTime date) {
+  return PriceCalendarService.getBasePriceForDate(date);
 }
 
 /// Рассчитывает общую стоимость для выбранных дат
 int calculateTotalPrice(List<DateTime> dates) {
   int total = 0;
   for (final date in dates) {
-    total += getBasePriceForMonth(date.month);
+    total += getBasePriceForDate(date);
   }
   return total;
 }
 
-/// Рассчитывает итоговую стоимость с учетом скидки
+/// Рассчитывает итоговую стоимость с учетом скидки для каждой даты
 int calculateFinalPrice(List<DateTime> dates) {
-  final basePrice = calculateTotalPrice(dates);
-  final discountPercent = int.tryParse(dotenv.env['DISCOUNT_PERCENT'] ?? '0') ?? 0;
-  final discount = (basePrice * discountPercent / 100).round();
-  return basePrice - discount;
+  int total = 0;
+  for (final date in dates) {
+    final basePrice = getBasePriceForDate(date);
+    final discountPercent = PriceCalendarService.getDiscountPercentForDate(date);
+    final discount = (basePrice * discountPercent / 100).round();
+    total += basePrice - discount;
+  }
+  return total;
 }
 
 /// Форматирует цену с разделителями тысяч
@@ -57,20 +39,37 @@ String formatPrice(int price) {
 String getPriceInfoText(List<DateTime> dates) {
   if (dates.isEmpty) return '';
   
-  // Группируем даты по месяцам
-  final Map<int, int> daysPerMonth = {};
+  // Группируем даты по месяцам и годам
+  final Map<String, List<DateTime>> datesPerYearMonth = {};
   for (final date in dates) {
-    daysPerMonth[date.month] = (daysPerMonth[date.month] ?? 0) + 1;
+    final key = '${date.year}-${date.month}';
+    datesPerYearMonth.putIfAbsent(key, () => []).add(date);
   }
   
-  // Формируем список месяцев с количеством дней
+  // Формируем список месяцев с количеством дней и средней ценой
   final List<String> monthInfo = [];
-  for (final entry in daysPerMonth.entries) {
-    final month = entry.key;
-    final days = entry.value;
-    final price = getBasePriceForMonth(month);
+  for (final entry in datesPerYearMonth.entries) {
+    final parts = entry.key.split('-');
+    final year = int.parse(parts[0]);
+    final month = int.parse(parts[1]);
+    final dates = entry.value;
+    
+    // Рассчитываем среднюю цену для этого месяца
+    int totalPrice = 0;
+    int daysWithPrice = 0;
+    for (final date in dates) {
+      final price = getBasePriceForDate(date);
+      if (price > 0) {
+        totalPrice += price;
+        daysWithPrice++;
+      }
+    }
+    
+    final avgPrice = daysWithPrice > 0 ? totalPrice ~/ daysWithPrice : 0;
     final monthName = getMonthName(month, GrammaticalCase.genitive);
-    monthInfo.add('$days дн. в $monthName (${formatPrice(price)}₽/день)');
+    final currency = dates.isNotEmpty ? PriceCalendarService.getCurrencyForDate(dates.first) : '₽';
+    
+    monthInfo.add('${dates.length} дн. в $monthName $year (${formatPrice(avgPrice)}$currency/день)');
   }
   
   return monthInfo.join(', ');
@@ -83,10 +82,25 @@ String getFullPriceInfo(List<DateTime> dates) {
   final basePrice = calculateTotalPrice(dates);
   final finalPrice = calculateFinalPrice(dates);
   final discount = basePrice - finalPrice;
-  final currency = dotenv.env['CURRENCY'];
-  final discountPercent = int.tryParse(dotenv.env['DISCOUNT_PERCENT'] ?? '0') ?? 0;
+  
+  // Используем валюту первой даты или по умолчанию
+  final currency = dates.isNotEmpty 
+      ? PriceCalendarService.getCurrencyForDate(dates.first)
+      : PriceCalendarService.getDefaultCurrency();
+  
+  // Рассчитываем средний процент скидки
+  int totalDiscountPercent = 0;
+  int daysWithDiscount = 0;
+  for (final date in dates) {
+    final discountPercent = PriceCalendarService.getDiscountPercentForDate(date);
+    if (discountPercent > 0) {
+      totalDiscountPercent += discountPercent;
+      daysWithDiscount++;
+    }
+  }
+  final avgDiscountPercent = daysWithDiscount > 0 ? totalDiscountPercent ~/ daysWithDiscount : 0;
   
   return 'Стоимость: ${formatPrice(basePrice)}$currency\n'
-         'Скидка $discountPercent%: -${formatPrice(discount)}$currency\n'
+         'Скидка $avgDiscountPercent%: -${formatPrice(discount)}$currency\n'
          'Итого: ${formatPrice(finalPrice)}$currency';
 } 

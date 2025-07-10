@@ -8,6 +8,7 @@ import 'package:room_ranger/utils/styles.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:room_ranger/utils/typedef.dart';
 import 'package:room_ranger/utils/price_utils.dart';
+import 'package:room_ranger/utils/price_calendar_service.dart';
 
 // ========================================================================== //
 
@@ -144,13 +145,19 @@ class _CalendarCellState extends State<CalendarCell> {
     return date.isBefore(DateTime(now.year, now.month, now.day));
   }
 
+  bool _isDateWithoutPrice(int day) {
+    final date = DateTime(widget.year, widget.month, day);
+    return !PriceCalendarService.hasPriceForDate(date);
+  }
+
   Widget _buildDayNumber(int dayNumber, int daysInMonth) {
     final isSelected = _isDateSelected(dayNumber);
     final isBooked = _isDateBooked(dayNumber);
     final isPast = _isPastDate(dayNumber);
+    final isWithoutPrice = _isDateWithoutPrice(dayNumber);
 
     Color? textColor = getDayTextStyle(context).color;
-    if (isPast) textColor = Colors.grey;
+    if (isPast || isWithoutPrice) textColor = Colors.grey;
 
     if (dayNumber < 1 || dayNumber > daysInMonth) {
       return Expanded(
@@ -282,6 +289,7 @@ class _CalendarCellState extends State<CalendarCell> {
     if (dayNumber < 1 || dayNumber > daysInMonth) return;
     if (_isDateBooked(dayNumber)) return;
     if (_isPastDate(dayNumber)) return;
+    if (_isDateWithoutPrice(dayNumber)) return;
     final date = DateTime(widget.year, widget.month, dayNumber);
     widget.onDateSelected(date);
   }
@@ -297,6 +305,7 @@ class _CalendarCellState extends State<CalendarCell> {
     if (row < 0 || row > 5 || col < 0 || col > 6) return null;
     if (dayNumber < 1 || dayNumber > daysInMonth) return null;
     if (_isPastDate(dayNumber)) return null;
+    if (_isDateWithoutPrice(dayNumber)) return null;
     return dayNumber;
   }
 
@@ -620,7 +629,7 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
               ),
             ),
             Text(
-              '${formatPrice(finalPrice)}${dotenv.env['CURRENCY']}',
+              '${formatPrice(finalPrice)}${PriceCalendarService.getDefaultCurrency()}',
               style: getPriceTotalTextStyle(context),
             ),
           ],
@@ -657,7 +666,14 @@ class _BookingContainerState extends State<BookingContainer> {
   @override
   void initState() {
     super.initState();
-    _loadAllCalendars();
+    _loadAllData();
+  }
+
+  Future<void> _loadAllData() async {
+    await Future.wait([
+      _loadAllCalendars(),
+      PriceCalendarService.loadPricesFromCalendar(),
+    ]);
   }
 
   Future<void> _loadAllCalendars() async {
