@@ -10,6 +10,7 @@ import 'package:room_ranger/utils/calendar_day.dart';
 import 'package:room_ranger/utils/calendar_day_service.dart';
 import 'package:room_ranger/utils/telegram_utils.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:developer';
 
 // ========================================================================== //
 
@@ -345,34 +346,23 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
   }
 
   String _getStatusMessage() {
-    if (_pickedRoom <= 0) {
-      return 'Выберите номер';
-    }
-    // Проверяем, есть ли выбранные даты в любой комнате
-    final hasAnyDates = widget.daysByRoom.values.any((days) => days.any((d) => d.status == DayStatus.selected));
+    if (_pickedRoom <= 0) return 'Выберите номер';
+    
+    final hasSelected = widget.daysByRoom.values.any((days) => days.any((d) => d.status == DayStatus.selected));
     final hasInsufficientNights = widget.daysByRoom.values.any((days) => days.any((d) => d.status == DayStatus.insufficientNights));
     
-    if (!hasAnyDates && !hasInsufficientNights) {
-      return 'Выберите даты';
-    } else if (hasInsufficientNights) {
-      final minNights = CalendarDayService.getMinNights();
-      return 'Минимум $minNights ночей';
-    } else {
-      return 'Даты выбраны';
-    }
+    if (!hasSelected && !hasInsufficientNights) return 'Выберите даты';
+    if (hasInsufficientNights) return 'Минимум ${CalendarDayService.getMinNights()} ночей';
+    return 'Даты выбраны';
   }
 
   String _getButtonText() {
     final hasSelected = widget.daysByRoom.values.any((days) => days.any((d) => d.status == DayStatus.selected));
     final hasInsufficientNights = widget.daysByRoom.values.any((days) => days.any((d) => d.status == DayStatus.insufficientNights));
     
-    if (hasSelected) {
-      return 'Забронировать  ';
-    } else if (hasInsufficientNights) {
-      return 'Недостаточно ночей  ';
-    } else {
-      return 'Задать вопрос  ';
-    }
+    if (hasSelected) return 'Забронировать  ';
+    if (hasInsufficientNights) return 'Недостаточно ночей  ';
+    return 'Задать вопрос  ';
   }
 
   @override
@@ -572,95 +562,71 @@ class _BookingContainerState extends State<BookingContainer> {
       final idx = days.indexWhere((d) => d.date == date);
       if (idx == -1) return;
       final current = days[idx];
-      print('[DEBUG] Клик по дню: $date (индекс $idx), статус: ${current.status}');
-      print('[DEBUG] Статусы до клика:');
-      for (int i = idx - 5; i <= idx + 5; i++) {
-        if (i >= 0 && i < days.length) {
-          print('  $i: ${days[i].date} — ${days[i].status}');
-        }
-      }
+      
       if (current.status == DayStatus.selected || current.status == DayStatus.insufficientNights) {
         // Снимаем выделение только с кликнутого дня
         days[idx] = current.copyWith(status: DayStatus.free);
-        // После снятия выделения проверяем, остался ли диапазон выбранных дней
-        // Ищем диапазон подряд идущих выбранных/insufficientNights дней вокруг кликнутого
-        int left = idx;
-        while (left > 0 && (days[left - 1].status == DayStatus.selected || days[left - 1].status == DayStatus.insufficientNights)) {
-          left--;
-        }
-        int right = idx;
-        while (right < days.length - 1 && (days[right + 1].status == DayStatus.selected || days[right + 1].status == DayStatus.insufficientNights)) {
-          right++;
-        }
-        // Если остался диапазон выбранных дней, обновляем его статусы
-        if (left < right) {
-          print('[DEBUG] После снятия выделения: остался диапазон left=$left, right=$right');
-          print('[DEBUG] Статусы в диапазоне:');
-          for (int i = left; i <= right; i++) {
-            print('  $i: ${days[i].date} — ${days[i].status}');
-          }
-          // Исключаем кликнутый день из диапазона
-          final range = <int>[];
-          for (int i = left; i <= right; i++) {
-            if (i != idx && (days[i].status == DayStatus.selected || days[i].status == DayStatus.insufficientNights)) {
-              range.add(i);
-            }
-          }
-          if (range.isNotEmpty) {
-            final minNights = CalendarDayService.getMinNights();
-            final nights = range.length - 1; // Количество ночей = количество дней - 1
-            final newStatus = nights >= minNights ? DayStatus.selected : DayStatus.insufficientNights;
-            print('[DEBUG] Оставшийся диапазон: ${range.length} дней ($nights ночей), новый статус: $newStatus');
-            for (final i in range) {
-              days[i] = days[i].copyWith(status: newStatus);
-            }
-            // Пересчитываем groupId и position для оставшегося диапазона
-            final affectedDays = [for (final i in range) days[i]];
-            CalendarDayService.applyGroupPositions(affectedDays, newStatus);
-            for (int j = 0; j < range.length; j++) {
-              days[range[j]] = affectedDays[j];
-              print('[DEBUG] Оставшийся день ${days[range[j]].date}: статус=${days[range[j]].status}, groupId=${days[range[j]].groupId}, position=${days[range[j]].position}');
-            }
-          }
-        }
+        // Обновляем статусы оставшегося диапазона
+        _updateRangeStatuses(days, idx, isRemoving: true);
       } else if (current.status == DayStatus.free) {
         // Выделяем кликнутый день
         days[idx] = current.copyWith(status: DayStatus.selected);
-        // Теперь ищем весь диапазон подряд идущих выбранных/insufficientNights дней вокруг кликнутого
-        int left = idx;
-        while (left > 0 && (days[left - 1].status == DayStatus.selected || days[left - 1].status == DayStatus.insufficientNights)) {
-          left--;
-        }
-        int right = idx;
-        while (right < days.length - 1 && (days[right + 1].status == DayStatus.selected || days[right + 1].status == DayStatus.insufficientNights)) {
-          right++;
-        }
-        print('[DEBUG] Диапазон: left=$left (${days[left].date}), right=$right (${days[right].date})');
-        final range = List<int>.generate(right - left + 1, (i) => left + i);
-        final minNights = CalendarDayService.getMinNights();
-        final nights = range.length - 1; // Количество ночей = количество дней - 1
-        final newStatus = nights >= minNights ? DayStatus.selected : DayStatus.insufficientNights;
-        print('[DEBUG] Длина диапазона: ${range.length} дней ($nights ночей), minNights: $minNights, новый статус: $newStatus');
-        for (final i in range) {
-          if (days[i].status == DayStatus.selected || days[i].status == DayStatus.insufficientNights) {
-            days[i] = days[i].copyWith(status: newStatus);
-          }
-        }
-        // Пересчитываем groupId и position только для этого диапазона
-        final affectedDays = [for (final i in range) days[i]];
-        CalendarDayService.applyGroupPositions(affectedDays, newStatus);
-        for (int j = 0; j < range.length; j++) {
-          days[range[j]] = affectedDays[j];
-          print('[DEBUG] День ${days[range[j]].date}: статус=${days[range[j]].status}, groupId=${days[range[j]].groupId}, position=${days[range[j]].position}');
-        }
-      }
-      print('[DEBUG] Статусы после клика:');
-      for (int i = idx - 5; i <= idx + 5; i++) {
-        if (i >= 0 && i < days.length) {
-          print('  $i: ${days[i].date} — ${days[i].status}');
-        }
+        // Обновляем статусы всего диапазона
+        _updateRangeStatuses(days, idx, isRemoving: false);
       }
     });
+  }
+
+  /// Обновляет статусы диапазона выбранных дней
+  void _updateRangeStatuses(List<CalendarDay> days, int clickedIndex, {required bool isRemoving}) {
+    // Ищем диапазон подряд идущих выбранных/insufficientNights дней вокруг кликнутого
+    int left = clickedIndex;
+    while (left > 0 && (days[left - 1].status == DayStatus.selected || days[left - 1].status == DayStatus.insufficientNights)) {
+      left--;
+    }
+    int right = clickedIndex;
+    while (right < days.length - 1 && (days[right + 1].status == DayStatus.selected || days[right + 1].status == DayStatus.insufficientNights)) {
+      right++;
+    }
+    
+    List<int> range;
+    if (isRemoving) {
+      // При снятии выделения исключаем кликнутый день из диапазона
+      range = <int>[];
+      for (int i = left; i <= right; i++) {
+        if (i != clickedIndex && (days[i].status == DayStatus.selected || days[i].status == DayStatus.insufficientNights)) {
+          range.add(i);
+        }
+      }
+    } else {
+      // При добавлении включаем все дни в диапазоне
+      range = List<int>.generate(right - left + 1, (i) => left + i);
+    }
+    
+    if (range.isEmpty) return;
+    
+    // Определяем новый статус на основе количества ночей
+    final minNights = CalendarDayService.getMinNights();
+    final nights = range.length - 1; // Количество ночей = количество дней - 1
+    final newStatus = nights >= minNights ? DayStatus.selected : DayStatus.insufficientNights;
+    
+    if (kDebugMode) {
+      log('[CALENDAR] Range: ${range.length} days ($nights nights) -> $newStatus');
+    }
+    
+    // Обновляем статусы
+    for (final i in range) {
+      if (days[i].status == DayStatus.selected || days[i].status == DayStatus.insufficientNights) {
+        days[i] = days[i].copyWith(status: newStatus);
+      }
+    }
+    
+    // Пересчитываем groupId и position для диапазона
+    final affectedDays = [for (final i in range) days[i]];
+    CalendarDayService.applyGroupPositions(affectedDays, newStatus);
+    for (int j = 0; j < range.length; j++) {
+      days[range[j]] = affectedDays[j];
+    }
   }
 
   void _onYearChanged(int newYear) {
@@ -679,7 +645,7 @@ class _BookingContainerState extends State<BookingContainer> {
     });
   }
 
-  // TODO: обработка выбора дня и обновление статуса будет позже
+
 
   @override
   Widget build(BuildContext context) {
