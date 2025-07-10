@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:room_ranger/utils/date_utils.dart';
 import 'package:room_ranger/utils/calendar_service.dart';
-import 'package:room_ranger/utils/telegram_utils.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:room_ranger/utils/styles.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:room_ranger/utils/typedef.dart';
 import 'package:room_ranger/utils/price_utils.dart';
 import 'package:room_ranger/utils/price_calendar_service.dart';
+import 'package:room_ranger/utils/calendar_day.dart';
+import 'package:room_ranger/utils/calendar_day_service.dart';
+import 'package:room_ranger/utils/telegram_utils.dart';
+import 'package:flutter/foundation.dart';
 
 // ========================================================================== //
 
@@ -16,8 +17,7 @@ class CalendarCell extends StatefulWidget {
   final int month;
   final int year;
   final Function(DateTime) onDateSelected;
-  final List<GroupedDay> booked;
-  final List<GroupedDay> selected;
+  final List<CalendarDay> days;
   final bool isEnabled;
 
   const CalendarCell({
@@ -25,8 +25,7 @@ class CalendarCell extends StatefulWidget {
     required this.month,
     required this.year,
     required this.onDateSelected,
-    required this.booked,
-    required this.selected,
+    required this.days,
     this.isEnabled = true,
   });
 
@@ -35,8 +34,6 @@ class CalendarCell extends StatefulWidget {
 }
 
 class _CalendarCellState extends State<CalendarCell> {
-  int? _lastHoveredDay;
-
   Widget _month() => Text(
         getMonthName(widget.month, GrammaticalCase.nominative),
         style: getMonthTextStyle(context),
@@ -55,143 +52,59 @@ class _CalendarCellState extends State<CalendarCell> {
             .toList(),
       );
 
-  bool _isDateBooked(int day) {
-    return widget.booked.any((bookedDay) =>
-        bookedDay.date.year == widget.year &&
-        bookedDay.date.month == widget.month &&
-        bookedDay.date.day == day);
-  }
-
-  bool _isDateSelected(int day) {
-    return widget.selected.any((selectedDay) =>
-        selectedDay.date == DateTime(widget.year, widget.month, day));
-  }
-
-  // Определяет позицию дня в группе (универсальная функция)
-  DayPosition _getDayPosition(int day, List<GroupedDay> days) {
-    final date = DateTime(widget.year, widget.month, day);
-    final dayData = days.firstWhere(
-      (day) => day.date == date,
-      orElse: () => GroupedDay(DateTime.now(), ''),
-    );
-
-    final groupId = dayData.groupId;
-    if (groupId.isEmpty) return DayPosition.single;
-
-    final sameGroup = days.where((d) => d.groupId == groupId).toList()
-      ..sort((a, b) => a.date.compareTo(b.date));
-
-    if (sameGroup.length == 1) return DayPosition.single;
-
-    // Находим непрерывные группы дат
-    final continuousGroups = _findContinuousGroups(sameGroup);
-
-    // Находим группу, к которой принадлежит текущая дата
-    final currentGroup = continuousGroups.firstWhere(
-      (group) => group.any((d) => d.date == date),
-      orElse: () => [dayData],
-    );
-
-    if (currentGroup.length == 1) return DayPosition.single;
-
-    // Проверяем позицию в непрерывной группе
-    final isFirstInGroup = currentGroup.first.date == date;
-    final isLastInGroup = currentGroup.last.date == date;
-
-    if (isFirstInGroup) {
-      // Проверяем, есть ли день в предыдущем месяце в той же непрерывной группе
-      final prevDay = date.subtract(const Duration(days: 1));
-      final hasPrevDay = currentGroup.any((d) => d.date == prevDay);
-      return hasPrevDay ? DayPosition.middle : DayPosition.start;
-    } else if (isLastInGroup) {
-      // Проверяем, есть ли день в следующем месяце в той же непрерывной группе
-      final nextDay = date.add(const Duration(days: 1));
-      final hasNextDay = currentGroup.any((d) => d.date == nextDay);
-      return hasNextDay ? DayPosition.middle : DayPosition.end;
+  CalendarDay? _getDay(int day) {
+    try {
+      return widget.days.firstWhere(
+        (d) => d.date.year == widget.year && d.date.month == widget.month && d.date.day == day,
+      );
+    } catch (_) {
+      return null;
     }
-
-    return DayPosition.middle;
-  }
-
-  // Находит непрерывные группы дат
-  List<List<GroupedDay>> _findContinuousGroups(List<GroupedDay> sameGroup) {
-    if (sameGroup.isEmpty) return [];
-
-    final groups = <List<GroupedDay>>[];
-    var currentGroup = <GroupedDay>[sameGroup.first];
-
-    for (int i = 1; i < sameGroup.length; i++) {
-      final prev = sameGroup[i - 1];
-      final curr = sameGroup[i];
-
-      // Проверяем, идут ли даты подряд
-      if (curr.date.difference(prev.date).inDays == 1) {
-        currentGroup.add(curr);
-      } else {
-        // Разрыв - начинаем новую группу
-        groups.add(List.from(currentGroup));
-        currentGroup = [curr];
-      }
-    }
-
-    // Добавляем последнюю группу
-    groups.add(currentGroup);
-    return groups;
-  }
-
-  bool _isPastDate(int day) {
-    final now = DateTime.now();
-    final date = DateTime(widget.year, widget.month, day);
-    return date.isBefore(DateTime(now.year, now.month, now.day));
-  }
-
-  bool _isDateWithoutPrice(int day) {
-    final date = DateTime(widget.year, widget.month, day);
-    return !PriceCalendarService.hasPriceForDate(date);
   }
 
   Widget _buildDayNumber(int dayNumber, int daysInMonth) {
-    final isSelected = _isDateSelected(dayNumber);
-    final isBooked = _isDateBooked(dayNumber);
-    final isPast = _isPastDate(dayNumber);
-    final isWithoutPrice = _isDateWithoutPrice(dayNumber);
-
-    Color? textColor = getDayTextStyle(context).color;
-    if (isPast || isWithoutPrice) textColor = Colors.grey;
-
-    if (dayNumber < 1 || dayNumber > daysInMonth) {
+    final day = _getDay(dayNumber);
+    if (dayNumber < 1 || dayNumber > daysInMonth || day == null) {
       return Expanded(
           child: SizedBox.square(dimension: getCalendarCellDimension(context)));
     }
 
-    // Определяем форму контейнера в зависимости от позиции в группе
+    Color? textColor = getDayTextStyle(context).color;
+    if (day.status == DayStatus.unavailable) textColor = Colors.grey;
+
     BoxDecoration decoration;
-    if (isSelected) {
-      final position = _getDayPosition(dayNumber, widget.selected);
-      decoration = _getDayDecoration(position, colorSelected);
-    } else if (isBooked) {
-      final position = _getDayPosition(dayNumber, widget.booked);
-      decoration = _getDayDecoration(position, colorBooked);
-    } else {
-      decoration = const BoxDecoration(
-        shape: BoxShape.circle,
-        color: colorTransparent,
-      );
+    switch (day.status) {
+      case DayStatus.selected:
+        decoration = _getDayDecoration(day.position, colorSelected);
+        break;
+      case DayStatus.booked:
+        decoration = _getDayDecoration(day.position, colorBooked);
+        break;
+      default:
+        decoration = const BoxDecoration(
+          shape: BoxShape.circle,
+          color: colorTransparent,
+        );
     }
 
     return Expanded(
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Container(
-            height: getCalendarCellDimension(context),
-            decoration: decoration,
-          ),
-          Text(
-            dayNumber.toString(),
-            style: getDayTextStyle(context).copyWith(color: textColor),
-          ),
-        ],
+      child: GestureDetector(
+        onTap: (widget.isEnabled && day.status != DayStatus.booked && day.status != DayStatus.unavailable)
+            ? () => widget.onDateSelected(day.date)
+            : null,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              height: getCalendarCellDimension(context),
+              decoration: decoration,
+            ),
+            Text(
+              dayNumber.toString(),
+              style: getDayTextStyle(context).copyWith(color: textColor),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -231,35 +144,15 @@ class _CalendarCellState extends State<CalendarCell> {
   }
 
   Widget _buildWeeks(int daysInMonth, int firstWeekday) {
-    return LayoutBuilder(
-      builder: (context, constr) {
-        final calendarContent = Column(
-            children: List.generate(6, (week) {
-          return Row(
-            children: List.generate(7, (dayIndex) {
-              final dayNumber = week * 7 + dayIndex - firstWeekday + 2;
-              return _buildDayNumber(dayNumber, daysInMonth);
-            }, growable: false),
-          );
-        }, growable: false));
-
-        // Если календарь отключен, возвращаем только контент без GestureDetector
-        if (!widget.isEnabled) {
-          return calendarContent;
-        }
-
-        // Если календарь включен, оборачиваем в GestureDetector
-        return GestureDetector(
-          onTapDown: (details) => setState(() => _handleTap(
-              details.localPosition, constr, daysInMonth, firstWeekday)),
-          onPanStart: (details) => setState(() => _handleDrag(
-              details.localPosition, constr, daysInMonth, firstWeekday)),
-          onPanUpdate: (details) => setState(() => _handleDrag(
-              details.localPosition, constr, daysInMonth, firstWeekday)),
-          onPanEnd: (details) => setState(() => _lastHoveredDay = null),
-          child: calendarContent,
+    return Column(
+      children: List.generate(6, (week) {
+        return Row(
+          children: List.generate(7, (dayIndex) {
+            final dayNumber = week * 7 + dayIndex - firstWeekday + 2;
+            return _buildDayNumber(dayNumber, daysInMonth);
+          }, growable: false),
         );
-      },
+      }, growable: false),
     );
   }
 
@@ -283,65 +176,20 @@ class _CalendarCellState extends State<CalendarCell> {
       ),
     );
   }
-
-  // Общая логика выбора/снятия выбора дня
-  void _toggleDaySelection(int dayNumber, int daysInMonth) {
-    if (dayNumber < 1 || dayNumber > daysInMonth) return;
-    if (_isDateBooked(dayNumber)) return;
-    if (_isPastDate(dayNumber)) return;
-    if (_isDateWithoutPrice(dayNumber)) return;
-    final date = DateTime(widget.year, widget.month, dayNumber);
-    widget.onDateSelected(date);
-  }
-
-  // Получение номера дня по позиции. Возвращает null, если вне диапазона.
-  int? _getDayFromPos(Offset localPos, BoxConstraints constr, int daysInMonth,
-      int firstWeekday) {
-    final cellHeight = getCalendarCellDimension(context);
-    final cellWidth = constr.maxWidth / 7;
-    final row = (localPos.dy / cellHeight).floor();
-    final col = (localPos.dx / cellWidth).floor();
-    final dayNumber = row * 7 + col - firstWeekday + 2;
-    if (row < 0 || row > 5 || col < 0 || col > 6) return null;
-    if (dayNumber < 1 || dayNumber > daysInMonth) return null;
-    if (_isPastDate(dayNumber)) return null;
-    if (_isDateWithoutPrice(dayNumber)) return null;
-    return dayNumber;
-  }
-
-  // Обработка клика по сетке дней
-  void _handleTap(Offset localPos, BoxConstraints constr, int daysInMonth,
-      int firstWeekday) {
-    final day = _getDayFromPos(localPos, constr, daysInMonth, firstWeekday);
-    if (day == null) return;
-    _toggleDaySelection(day, daysInMonth);
-  }
-
-  // Определяет, над каким днём сейчас drag, и выделяет его
-  void _handleDrag(Offset localPos, BoxConstraints constr, int daysInMonth,
-      int firstWeekday) {
-    final day = _getDayFromPos(localPos, constr, daysInMonth, firstWeekday);
-    if (day == null) return;
-    if (_lastHoveredDay == day) return;
-    _lastHoveredDay = day;
-    _toggleDaySelection(day, daysInMonth);
-  }
 }
 
 // ========================================================================== //
 
 class TableContainer extends StatelessWidget {
   final Function(DateTime) onDateSelected;
-  final List<GroupedDay> booked;
-  final List<GroupedDay> selected;
+  final List<CalendarDay> days;
   final int selectedYear;
   final bool isEnabled;
 
   const TableContainer({
     super.key,
     required this.onDateSelected,
-    required this.booked,
-    required this.selected,
+    required this.days,
     required this.selectedYear,
     this.isEnabled = true,
   });
@@ -359,6 +207,8 @@ class TableContainer extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: List.generate(3, (colIndex) {
                     final monthIndex = rowIndex * 3 + colIndex;
+                    // Фильтруем дни для месяца
+                    final monthDays = days.where((d) => d.date.month == monthIndex + 1 && d.date.year == selectedYear).toList();
                     return Expanded(
                       child: Container(
                         margin: EdgeInsets.all(getCalendarCellMargin(context)),
@@ -371,8 +221,7 @@ class TableContainer extends StatelessWidget {
                           month: monthIndex + 1,
                           year: selectedYear,
                           onDateSelected: (date) => onDateSelected(date),
-                          booked: booked,
-                          selected: selected,
+                          days: monthDays,
                           isEnabled: isEnabled,
                         ),
                       ),
@@ -454,7 +303,7 @@ class YearSelector extends StatelessWidget {
 // ========================================================================== //
 
 class BookingButtonContainer extends StatefulWidget {
-  final Map<int, List<GroupedDay>> selectedDaysByRoom;
+  final Map<int, List<CalendarDay>> daysByRoom;
   final int selectedMonth;
   final int selectedYear;
   final Function(int) onYearChanged;
@@ -463,7 +312,7 @@ class BookingButtonContainer extends StatefulWidget {
 
   const BookingButtonContainer({
     super.key,
-    required this.selectedDaysByRoom,
+    required this.daysByRoom,
     required this.selectedMonth,
     required this.selectedYear,
     required this.onYearChanged,
@@ -496,23 +345,18 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
     if (_pickedRoom <= 0) {
       return 'Выберите номер';
     }
-
     // Проверяем, есть ли выбранные даты в любой комнате
-    final hasAnyDates =
-        widget.selectedDaysByRoom.values.any((dates) => dates.isNotEmpty);
-
+    final hasAnyDates = widget.daysByRoom.values.any((days) => days.any((d) => d.status == DayStatus.selected));
     if (!hasAnyDates) {
       return 'Выберите даты';
     } else {
-      return formatAllBookingDatesText(
-        selectedDaysByRoom: widget.selectedDaysByRoom,
-        selectedMonth: widget.selectedMonth,
-      );
+      // Можно реализовать форматирование выбранных дат позже
+      return 'Даты выбраны';
     }
   }
 
   String _getButtonText() {
-    return (widget.selectedDaysByRoom.values.any((dates) => dates.isNotEmpty))
+    return (widget.daysByRoom.values.any((days) => days.any((d) => d.status == DayStatus.selected)))
         ? 'Забронировать  '
         : 'Задать вопрос  ';
   }
@@ -554,8 +398,9 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
               ElevatedButton(
                 onPressed: () async {
                   final message = buildTelegramBookingMessage(
-                      selectedDaysByRoom: widget.selectedDaysByRoom,
-                      selectedMonth: widget.selectedMonth);
+                    daysByRoom: widget.daysByRoom,
+                    selectedMonth: widget.selectedMonth,
+                  );
                   await sendTelegramBookingMessage(message);
                 },
                 style: ElevatedButton.styleFrom(
@@ -578,11 +423,10 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
                     overflow: TextOverflow.ellipsis,
                     maxLines: 6,
                     softWrap: true,
-                    // textAlign: TextAlign.center,
                     style: TextStyle(
                         fontSize: getBookingButtonFontSize(context),
                         color: Colors.grey),
-                    '${_getStatusMessage()}\n',
+                    _getStatusMessage(),
                   ),
                 ),
               ),
@@ -594,13 +438,11 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
   }
 
   ElevatedButton roomPicker(int i) {
-    // Получаем выбранные даты для этой комнаты
-    final roomDates = widget.selectedDaysByRoom[i] ?? [];
-    final dates = roomDates.map((day) => day.date).toList();
-
-    // Рассчитываем цены
-    final basePrice = calculateTotalPrice(dates);
-    final finalPrice = calculateFinalPrice(dates);
+    // Получаем дни для этой комнаты
+    final roomDays = widget.daysByRoom[i] ?? [];
+    final selectedDays = roomDays.where((d) => d.status == DayStatus.selected).toList();
+    final basePrice = calculateTotalPrice(selectedDays);
+    final finalPrice = calculateFinalPrice(selectedDays);
 
     return ElevatedButton(
       onPressed: () {
@@ -617,7 +459,7 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (dates.isEmpty) ...[
+          if (selectedDays.isEmpty) ...[
             Text(i.toString(), style: getButtonTextStyle(context)),
           ] else ...[
             Text(
@@ -648,20 +490,17 @@ class BookingContainer extends StatefulWidget {
 }
 
 class _BookingContainerState extends State<BookingContainer> {
-  // Храним выбранные даты для каждой комнаты отдельно
-  final Map<int, List<GroupedDay>> _selectedDaysByRoom = {};
-  // Храним загруженные календари для каждой комнаты
-  final Map<int, List<GroupedDay>> _bookedDatesByRoom = {};
-  int _selectedMonth = DateTime.now().month;
+  // Храним коллекции дней для каждой комнаты
+  Map<int, List<CalendarDay>> _daysByRoom = {};
+  Map<int, Set<DateTime>> _bookedMap = {};
+  Map<int, Set<DateTime>> _selectedMap = {};
+  final int _selectedMonth = DateTime.now().month;
   int _selectedYear = DateTime.now().year;
   int _selectedRoom = 2;
   bool _isLoading = true;
 
-  // Геттер для получения выбранных дат текущей комнаты
-  List<GroupedDay> get _selected => _selectedDaysByRoom[_selectedRoom] ?? [];
-
-  // Геттер для получения занятых дат текущей комнаты
-  List<GroupedDay> get _booked => _bookedDatesByRoom[_selectedRoom] ?? [];
+  // Геттер для получения дней текущей комнаты
+  List<CalendarDay> get _days => _daysByRoom[_selectedRoom] ?? [];
 
   @override
   void initState() {
@@ -670,115 +509,76 @@ class _BookingContainerState extends State<BookingContainer> {
   }
 
   Future<void> _loadAllData() async {
-    await Future.wait([
-      _loadAllCalendars(),
-      PriceCalendarService.loadPricesFromCalendar(),
-    ]);
-  }
-
-  Future<void> _loadAllCalendars() async {
     setState(() => _isLoading = true);
-
     try {
       // Получаем список всех доступных комнат
       final availableRooms = CalendarService.getAvailableRooms();
-
-      // Загружаем календари для всех комнат параллельно
-      final futures = availableRooms.map((roomNumber) async {
-        try {
-          final bookedDates = await CalendarService.getBookedDates(roomNumber);
-          return MapEntry(roomNumber, bookedDates);
-        } catch (e) {
-          if (kDebugMode) {
-            print('Error loading calendar for room $roomNumber: $e');
-          }
-          // В случае ошибки возвращаем пустой список
-          return MapEntry(roomNumber, <GroupedDay>[]);
-        }
-      });
-
-      final results = await Future.wait(futures);
-
-      setState(() {
-        for (final entry in results) {
-          _bookedDatesByRoom[entry.key] = entry.value;
-        }
-        _isLoading = false;
-      });
-
-      if (kDebugMode) {
-        print('Loaded calendars for ${results.length} rooms');
+      // Загружаем booked для всех комнат
+      final bookedMap = <int, Set<DateTime>>{};
+      for (final room in availableRooms) {
+        final booked = await CalendarService.getBookedDates(room);
+        bookedMap[room] = booked.map((d) => d).toSet();
       }
+      // Загружаем цены
+      await PriceCalendarService.loadPricesFromCalendar();
+      // selected пока пустые
+      final selectedMap = <int, Set<DateTime>>{};
+      // Диапазон дат
+      final from = DateTime(_selectedYear, 1, 1);
+      final to = DateTime(_selectedYear + 2, 12, 31);
+      // Генерируем коллекции дней
+      _bookedMap = bookedMap;
+      _selectedMap = selectedMap;
+      _daysByRoom = CalendarDayService.generateForAllRooms(
+        rooms: availableRooms,
+        from: from,
+        to: to,
+        bookedDates: bookedMap,
+        selectedDates: selectedMap,
+      );
+      _isLoading = false;
     } catch (e) {
       if (kDebugMode) {
         print('Error loading calendars: $e');
       }
       setState(() => _isLoading = false);
     }
+    setState(() {});
   }
 
   void _onDateSelected(DateTime date) {
     setState(() {
-      // Получаем или создаем список дат для текущей комнаты
-      final roomDates = _selectedDaysByRoom[_selectedRoom] ?? [];
-
-      // Проверяем, есть ли уже эта дата
-      final existingIndex = roomDates.indexWhere((day) => day.date == date);
-
-      if (existingIndex != -1) {
-        // Удаляем дату
-        roomDates.removeAt(existingIndex);
-      } else {
-        // Добавляем новую дату и группируем с соседними
-        roomDates.add(GroupedDay(date, ''));
-        _regroupSelectedDays(roomDates);
+      final days = _daysByRoom[_selectedRoom];
+      if (days == null) return;
+      final idx = days.indexWhere((d) => d.date == date);
+      if (idx == -1) return;
+      final current = days[idx];
+      if (current.status == DayStatus.selected) {
+        days[idx] = current.copyWith(status: DayStatus.free);
+      } else if (current.status == DayStatus.free) {
+        days[idx] = current.copyWith(status: DayStatus.selected);
       }
-
-      // Обновляем даты для текущей комнаты
-      _selectedDaysByRoom[_selectedRoom] = roomDates;
-
-      // Обновляем выбранный месяц и год
-      _selectedMonth = date.month;
-      _selectedYear = date.year;
+      // Можно добавить обработку booked/unavailable, если нужно
     });
-  }
-
-  // Группирует последовательные выбранные даты
-  void _regroupSelectedDays(List<GroupedDay> days) {
-    if (days.isEmpty) return;
-
-    // Сортируем по дате
-    days.sort((a, b) => a.date.compareTo(b.date));
-
-    // Группируем последовательные даты
-    final groups = <String>[];
-    String currentGroup = '';
-
-    for (int i = 0; i < days.length; i++) {
-      if (i == 0 || days[i].date.difference(days[i - 1].date).inDays > 1) {
-        // Начинаем новую группу
-        currentGroup = 'group_${DateTime.now().millisecondsSinceEpoch}_$i';
-        groups.add(currentGroup);
-      }
-      days[i] = GroupedDay(days[i].date, currentGroup);
-    }
   }
 
   void _onYearChanged(int newYear) {
     setState(() {
       _selectedYear = newYear;
-      // Очищаем выбранные даты при смене года
-      // _selectedDays.clear();
+      final availableRooms = _daysByRoom.keys.toList();
+      final from = DateTime(_selectedYear, 1, 1);
+      final to = DateTime(_selectedYear + 2, 12, 31);
+      _daysByRoom = CalendarDayService.generateForAllRooms(
+        rooms: availableRooms,
+        from: from,
+        to: to,
+        bookedDates: _bookedMap,
+        selectedDates: _selectedMap,
+      );
     });
   }
 
-  void _onRoomChanged(int room) {
-    setState(() {
-      _selectedRoom = room;
-      // НЕ очищаем выбранные даты при смене комнаты - они сохраняются для каждой комнаты
-    });
-    // Календари уже загружены при запуске, не нужно перезагружать
-  }
+  // TODO: обработка выбора дня и обновление статуса будет позже
 
   @override
   Widget build(BuildContext context) {
@@ -800,21 +600,24 @@ class _BookingContainerState extends State<BookingContainer> {
               children: [
                 Expanded(
                   child: BookingButtonContainer(
-                    selectedDaysByRoom: _selectedDaysByRoom,
+                    daysByRoom: _daysByRoom,
                     selectedMonth: _selectedMonth,
                     selectedYear: _selectedYear,
                     onYearChanged: _onYearChanged,
-                    onRoomChanged: _onRoomChanged,
+                    onRoomChanged: (room) => setState(() => _selectedRoom = room),
                     selectedRoom: _selectedRoom,
                   ),
                 ),
-                TableContainer(
-                  onDateSelected: _onDateSelected,
-                  booked: _booked,
-                  selected: _selected,
-                  selectedYear: _selectedYear,
-                  isEnabled: _selectedRoom > 0,
-                ),
+                // Диагностика: выводим количество дней
+                Builder(builder: (context) {
+                  if (kDebugMode) print('TableContainer: days count =  ${_days.length}');
+                  return TableContainer(
+                    onDateSelected: _onDateSelected,
+                    days: _days,
+                    selectedYear: _selectedYear,
+                    isEnabled: _selectedRoom > 0,
+                  );
+                }),
               ],
             ),
     );
