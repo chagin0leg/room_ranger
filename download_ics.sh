@@ -27,7 +27,11 @@ grep '\.ics' .env | cut -d= -f2- | tr -d '\r' | while read -r url; do
   url=$(echo "$url" | xargs)
   [ -z "$url" ] && continue
   echo "url='$url'"
-  filename=$(basename "$url")
+  if [[ "$url" =~ /ical/([0-9a-zA-Z]+) ]]; then
+    filename="${BASH_REMATCH[1]}.ics"
+  else
+    filename=$(basename "$url")
+  fi
   dest="$OUT_DIR/$filename"
 
   success=0

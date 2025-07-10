@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:icalendar_parser/icalendar_parser.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class PriceInfo {
   final int price;
@@ -73,6 +74,15 @@ class PriceCalendarService {
     );
   }
 
+  static String? extractIcsFileName(String url) {
+    final icalMatch = RegExp(r'/ical/([0-9a-zA-Z]+)').firstMatch(url);
+    if (icalMatch != null) {
+      return '${icalMatch.group(1)}.ics';
+    }
+    final uri = Uri.parse(url);
+    return uri.pathSegments.isNotEmpty ? uri.pathSegments.last : null;
+  }
+
   /// Загружает цены из ICS файла календаря
   static Future<PriceCalendarData> loadPricesFromCalendar() async {
     if (_priceData != null) return _priceData!;
@@ -86,7 +96,15 @@ class PriceCalendarService {
     _isLoading = true;
 
     try {
-      final icsString = await rootBundle.loadString('assets/data/prices.ics');
+      final url = dotenv.env['PRICES_FILE'];
+      if (url == null || url.isEmpty) {
+        throw Exception('PRICES_FILE not set in .env');
+      }
+      final fileName = extractIcsFileName(url);
+      if (fileName == null) {
+        throw Exception('Не удалось определить имя файла из url: $url');
+      }
+      final icsString = await rootBundle.loadString('assets/data/$fileName');
       final calendar = ICalendar.fromString(icsString);
 
       final pricesByDate = <String, PriceInfo>{};

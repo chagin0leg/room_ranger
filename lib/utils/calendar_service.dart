@@ -24,6 +24,15 @@ class CalendarService {
     return result;
   }
 
+  static String? extractIcsFileName(String url) {
+    final icalMatch = RegExp(r'/ical/([0-9a-zA-Z]+)').firstMatch(url);
+    if (icalMatch != null) {
+      return '${icalMatch.group(1)}.ics';
+    }
+    final uri = Uri.parse(url);
+    return uri.pathSegments.isNotEmpty ? uri.pathSegments.last : null;
+  }
+
   static DateTime? _parseIcsDate(dynamic v) {
     if (v == null) return null;
     if (v is String) return DateTime.tryParse(v);
@@ -41,7 +50,11 @@ class CalendarService {
       log('[ICS] Room $roomNumber has no calendar - all dates considered booked');
       return _getAllDatesAsBookedList();
     }
-    final filePath = 'assets/data/${calendarUrls.first.split('/').last}';
+    final fileName = extractIcsFileName(calendarUrls.first);
+    if (fileName == null) {
+      throw Exception('Failed to determine file name from url: ${calendarUrls.first}');
+    }
+    final filePath = 'assets/data/$fileName';
     final assetResult = await _tryLoadCalendarFromAsset(filePath, roomNumber);
     if (assetResult != null) {
       log('[ICS] Room $roomNumber: Successfully loaded calendar from asset');
