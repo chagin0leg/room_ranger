@@ -38,7 +38,7 @@ class _CalendarCellState extends State<CalendarCell> {
   int? _lastHoveredDay;
   bool _isDragging = false;
   Offset? _dragStartPosition;
-  
+
   Widget _month() => Text(
         getMonthName(widget.month, GrammaticalCase.nominative),
         style: getMonthTextStyle(context),
@@ -60,7 +60,10 @@ class _CalendarCellState extends State<CalendarCell> {
   CalendarDay? _getDay(int day) {
     try {
       return widget.days.firstWhere(
-        (d) => d.date.year == widget.year && d.date.month == widget.month && d.date.day == day,
+        (d) =>
+            d.date.year == widget.year &&
+            d.date.month == widget.month &&
+            d.date.day == day,
       );
     } catch (_) {
       return null;
@@ -160,7 +163,6 @@ class _CalendarCellState extends State<CalendarCell> {
           }, growable: false),
         );
 
-
         // Если календарь отключен, возвращаем только контент без GestureDetector
         if (!widget.isEnabled) return calendarContent;
 
@@ -172,7 +174,8 @@ class _CalendarCellState extends State<CalendarCell> {
           onPanStart: (details) {
             setState(() {
               _isDragging = true;
-              _handleDrag(details.localPosition, constr, daysInMonth, firstWeekday);
+              _handleDrag(
+                  details.localPosition, constr, daysInMonth, firstWeekday);
             });
           },
           onPanUpdate: (details) => setState(() => _handleDrag(
@@ -185,8 +188,10 @@ class _CalendarCellState extends State<CalendarCell> {
           onTapUp: (details) {
             // Если это был короткий tap (не drag), обрабатываем его
             if (_dragStartPosition != null && !_isDragging) {
-              final distance = (_dragStartPosition! - details.localPosition).distance;
-              if (distance < 5) { // Порог в 5 пикселей
+              final distance =
+                  (_dragStartPosition! - details.localPosition).distance;
+              if (distance < 5) {
+                // Порог в 5 пикселей
                 setState(() => _handleTap(
                     details.localPosition, constr, daysInMonth, firstWeekday));
               }
@@ -204,32 +209,36 @@ class _CalendarCellState extends State<CalendarCell> {
     if (dayNumber < 1 || dayNumber > daysInMonth) return;
     final day = _getDay(dayNumber);
     if (day == null) return;
-    if (day.status == DayStatus.booked || day.status == DayStatus.unavailable) return;
-    
+    if (day.status == DayStatus.booked || day.status == DayStatus.unavailable)
+      return;
+
     final date = DateTime(widget.year, widget.month, dayNumber);
     widget.onDateSelected(date);
   }
 
   // Получение номера дня по позиции. Возвращает null, если вне диапазона.
-  int? _getDayFromPos(Offset localPos, BoxConstraints constr, int daysInMonth, int firstWeekday) {
+  int? _getDayFromPos(Offset localPos, BoxConstraints constr, int daysInMonth,
+      int firstWeekday) {
     final cellHeight = getCalendarCellDimension(context);
     final cellWidth = constr.maxWidth / 7;
     final row = (localPos.dy / cellHeight).floor();
     final col = (localPos.dx / cellWidth).floor();
     final dayNumber = row * 7 + col - firstWeekday + 2;
-    
+
     if (row < 0 || row > 5 || col < 0 || col > 6) return null;
     if (dayNumber < 1 || dayNumber > daysInMonth) return null;
-    
+
     final day = _getDay(dayNumber);
     if (day == null) return null;
-    if (day.status == DayStatus.booked || day.status == DayStatus.unavailable) return null;
-    
+    if (day.status == DayStatus.booked || day.status == DayStatus.unavailable)
+      return null;
+
     return dayNumber;
   }
 
   // Обработка клика по сетке дней
-  void _handleTap(Offset localPos, BoxConstraints constr, int daysInMonth, int firstWeekday) {
+  void _handleTap(Offset localPos, BoxConstraints constr, int daysInMonth,
+      int firstWeekday) {
     if (mounted) {
       final day = _getDayFromPos(localPos, constr, daysInMonth, firstWeekday);
       if (day == null) return;
@@ -238,7 +247,8 @@ class _CalendarCellState extends State<CalendarCell> {
   }
 
   // Определяет, над каким днём сейчас drag, и выделяет его
-  void _handleDrag(Offset localPos, BoxConstraints constr, int daysInMonth, int firstWeekday) {
+  void _handleDrag(Offset localPos, BoxConstraints constr, int daysInMonth,
+      int firstWeekday) {
     final day = _getDayFromPos(localPos, constr, daysInMonth, firstWeekday);
     if (day == null) return;
     if (_lastHoveredDay == day) return; // Избегаем повторной обработки
@@ -298,7 +308,11 @@ class TableContainer extends StatelessWidget {
                   children: List.generate(3, (colIndex) {
                     final monthIndex = rowIndex * 3 + colIndex;
                     // Фильтруем дни для месяца
-                    final monthDays = days.where((d) => d.date.month == monthIndex + 1 && d.date.year == selectedYear).toList();
+                    final monthDays = days
+                        .where((d) =>
+                            d.date.month == monthIndex + 1 &&
+                            d.date.year == selectedYear)
+                        .toList();
                     return Expanded(
                       child: Container(
                         margin: EdgeInsets.all(getCalendarCellMargin(context)),
@@ -433,10 +447,11 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
 
   String _getStatusMessage() {
     if (_pickedRoom <= 0) return 'Выберите номер';
-    
-    final hasSelected = widget.daysByRoom.values.any((days) => days.any((d) => d.status == DayStatus.selected));
+
+    final hasSelected = widget.daysByRoom.values
+        .any((days) => days.any((d) => d.status == DayStatus.selected));
     final hasInsufficient = hasInsufficientNights();
-    final minNights = CalendarDayService.getMinNights();  
+    final minNights = CalendarDayService.getMinNights();
 
     if (!hasSelected && !hasInsufficient) return 'Выберите даты';
     if (hasInsufficient) return 'Мин. $minNights ${getNightWord(minNights)}';
@@ -447,97 +462,115 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
   }
 
   String _getButtonText() {
-    final hasSelected = widget.daysByRoom.values.any((days) => days.any((d) => d.status == DayStatus.selected));
+    final hasSelected = widget.daysByRoom.values
+        .any((days) => days.any((d) => d.status == DayStatus.selected));
     final hasInsufficient = hasInsufficientNights();
     final minNights = CalendarDayService.getMinNights();
-    
+
     // Если есть дни с недостаточным количеством ночей, показываем это
     if (hasInsufficient) return 'Мин. $minNights ${getNightWord(minNights)}  ';
     if (hasSelected) return 'Забронировать  ';
     return 'Задать вопрос  ';
   }
 
-  bool hasInsufficientNights() => widget.daysByRoom.values.any((days) => days.any((d) => d.status == DayStatus.insufficientNights));
+  bool hasInsufficientNights() => widget.daysByRoom.values
+      .any((days) => days.any((d) => d.status == DayStatus.insufficientNights));
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Stack(
+      alignment: AlignmentDirectional.centerEnd,
       children: [
-        Expanded(
-          flex: 2,
-          child: Stack(
-            children: [
-              Center(child: Image.asset('assets/home.png')),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+        Row(
+          children: [
+            Expanded(
+              flex: 2,
+              child: Stack(
                 children: [
-                  Row(
+                  Center(child: Image.asset('assets/home.png')),
+                  Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [roomPicker(4), roomPicker(3)],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [roomPicker(2), roomPicker(1)],
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [roomPicker(4), roomPicker(3)],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [roomPicker(2), roomPicker(1)],
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+            Expanded(child: Container()),
+          ],
         ),
-        Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              YearSelector(
-                selectedYear: widget.selectedYear,
-                onYearChanged: widget.onYearChanged,
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  final hasSelected = widget.daysByRoom.values.any((days) => days.any((d) => d.status == DayStatus.selected));
-                  final hasInsufficient = hasInsufficientNights();
-                  
-                  // Не позволяем переходить к заказу, если есть дни с недостаточным количеством ночей
-                  if (!hasSelected || hasInsufficient) return;
-                  
-                  final message = buildTelegramBookingMessage(
-                    daysByRoom: widget.daysByRoom,
-                    selectedMonth: widget.selectedMonth,
-                  );
-                  await sendTelegramBookingMessage(message);
-                },
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: colorButtonBg,
-                    foregroundColor: colorButtonFg,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: getButtonTextStyle(context).fontSize! / 2,
-                    )),
-                child: Row(
-                  mainAxisAlignment: hasInsufficientNights() ? MainAxisAlignment.center : MainAxisAlignment.spaceBetween,
-                  children: [
-                    if (!hasInsufficientNights()) ...[
-                      const Icon(Icons.telegram_outlined),
-                    ],
-                    Text(_getButtonText(), style: getButtonTextStyle(context)),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Center(
-                  child: Text(
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 6,
-                    softWrap: true,
-                    style: TextStyle(
-                        fontSize: getBookingButtonFontSize(context),
-                        color: Colors.grey),
-                    _getStatusMessage(),
+        Row(
+          spacing: getBaseWidth(context) / 100 * 10,
+          children: [
+            Expanded(child: Container()),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  YearSelector(
+                    selectedYear: widget.selectedYear,
+                    onYearChanged: widget.onYearChanged,
                   ),
-                ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      final hasSelected = widget.daysByRoom.values.any((days) =>
+                          days.any((d) => d.status == DayStatus.selected));
+                      final hasInsufficient = hasInsufficientNights();
+
+                      // Не позволяем переходить к заказу, если есть дни с недостаточным количеством ночей
+                      if (!hasSelected || hasInsufficient) return;
+
+                      final message = buildTelegramBookingMessage(
+                        daysByRoom: widget.daysByRoom,
+                        selectedMonth: widget.selectedMonth,
+                      );
+                      await sendTelegramBookingMessage(message);
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: colorButtonBg,
+                        foregroundColor: colorButtonFg,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: getButtonTextStyle(context).fontSize! / 2,
+                        )),
+                    child: Row(
+                      mainAxisAlignment: hasInsufficientNights()
+                          ? MainAxisAlignment.center
+                          : MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (!hasInsufficientNights()) ...[
+                          const Icon(Icons.telegram_outlined),
+                        ],
+                        Text(_getButtonText(),
+                            style: getButtonTextStyle(context)),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 6,
+                        softWrap: true,
+                        style: TextStyle(
+                            fontSize: getBookingButtonFontSize(context),
+                            color: Colors.grey),
+                        _getStatusMessage(),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ],
     );
@@ -546,8 +579,11 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
   ElevatedButton roomPicker(int i) {
     // Получаем дни для этой комнаты
     final roomDays = widget.daysByRoom[i] ?? [];
-    final selectedDays = roomDays.where((d) => d.status == DayStatus.selected).toList();
-    final insufficientDays = roomDays.where((d) => d.status == DayStatus.insufficientNights).toList();
+    final selectedDays =
+        roomDays.where((d) => d.status == DayStatus.selected).toList();
+    final insufficientDays = roomDays
+        .where((d) => d.status == DayStatus.insufficientNights)
+        .toList();
     final allSelectedDays = [...selectedDays, ...insufficientDays];
     final basePrice = calculateTotalPrice(allSelectedDays);
     final finalPrice = calculateFinalPrice(allSelectedDays);
@@ -661,8 +697,9 @@ class _BookingContainerState extends State<BookingContainer> {
       final idx = days.indexWhere((d) => d.date == date);
       if (idx == -1) return;
       final current = days[idx];
-      
-      if (current.status == DayStatus.selected || current.status == DayStatus.insufficientNights) {
+
+      if (current.status == DayStatus.selected ||
+          current.status == DayStatus.insufficientNights) {
         // Снимаем выделение только с кликнутого дня
         days[idx] = current.copyWith(status: DayStatus.free);
         // Обновляем статусы оставшегося диапазона
@@ -677,23 +714,30 @@ class _BookingContainerState extends State<BookingContainer> {
   }
 
   /// Обновляет статусы диапазона выбранных дней
-  void _updateRangeStatuses(List<CalendarDay> days, int clickedIndex, {required bool isRemoving}) {
+  void _updateRangeStatuses(List<CalendarDay> days, int clickedIndex,
+      {required bool isRemoving}) {
     // Ищем диапазон подряд идущих выбранных/insufficientNights дней вокруг кликнутого
     int left = clickedIndex;
-    while (left > 0 && (days[left - 1].status == DayStatus.selected || days[left - 1].status == DayStatus.insufficientNights)) {
+    while (left > 0 &&
+        (days[left - 1].status == DayStatus.selected ||
+            days[left - 1].status == DayStatus.insufficientNights)) {
       left--;
     }
     int right = clickedIndex;
-    while (right < days.length - 1 && (days[right + 1].status == DayStatus.selected || days[right + 1].status == DayStatus.insufficientNights)) {
+    while (right < days.length - 1 &&
+        (days[right + 1].status == DayStatus.selected ||
+            days[right + 1].status == DayStatus.insufficientNights)) {
       right++;
     }
-    
+
     List<int> range;
     if (isRemoving) {
       // При снятии выделения исключаем кликнутый день из диапазона
       range = <int>[];
       for (int i = left; i <= right; i++) {
-        if (i != clickedIndex && (days[i].status == DayStatus.selected || days[i].status == DayStatus.insufficientNights)) {
+        if (i != clickedIndex &&
+            (days[i].status == DayStatus.selected ||
+                days[i].status == DayStatus.insufficientNights)) {
           range.add(i);
         }
       }
@@ -701,25 +745,27 @@ class _BookingContainerState extends State<BookingContainer> {
       // При добавлении включаем все дни в диапазоне
       range = List<int>.generate(right - left + 1, (i) => left + i);
     }
-    
+
     if (range.isEmpty) return;
-    
+
     // Определяем новый статус на основе количества ночей
     final minNights = CalendarDayService.getMinNights();
     final nights = range.length - 1; // Количество ночей = количество дней - 1
-    final newStatus = nights >= minNights ? DayStatus.selected : DayStatus.insufficientNights;
-    
+    final newStatus =
+        nights >= minNights ? DayStatus.selected : DayStatus.insufficientNights;
+
     if (kDebugMode) {
       log('[CALENDAR] Range: ${range.length} days ($nights nights) -> $newStatus');
     }
-    
+
     // Обновляем статусы
     for (final i in range) {
-      if (days[i].status == DayStatus.selected || days[i].status == DayStatus.insufficientNights) {
+      if (days[i].status == DayStatus.selected ||
+          days[i].status == DayStatus.insufficientNights) {
         days[i] = days[i].copyWith(status: newStatus);
       }
     }
-    
+
     // Пересчитываем groupId и position для диапазона
     final affectedDays = [for (final i in range) days[i]];
     CalendarDayService.applyGroupPositions(affectedDays, newStatus);
@@ -743,8 +789,6 @@ class _BookingContainerState extends State<BookingContainer> {
       );
     });
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -770,7 +814,8 @@ class _BookingContainerState extends State<BookingContainer> {
                     selectedMonth: _selectedMonth,
                     selectedYear: _selectedYear,
                     onYearChanged: _onYearChanged,
-                    onRoomChanged: (room) => setState(() => _selectedRoom = room),
+                    onRoomChanged: (room) =>
+                        setState(() => _selectedRoom = room),
                     selectedRoom: _selectedRoom,
                   ),
                 ),
