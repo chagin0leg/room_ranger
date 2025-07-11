@@ -439,7 +439,10 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
 
     if (!hasSelected && !hasInsufficientNights()) return 'Выберите даты';
     if (hasInsufficientNights()) return 'Мин. $minNights ${getNightWord(minNights)}';
-    return 'Даты выбраны';
+    return formatAllBookingDatesText(
+      daysByRoom: widget.daysByRoom,
+      selectedMonth: widget.selectedMonth,
+    );
   }
 
   String _getButtonText() {
@@ -557,7 +560,7 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (allSelectedDays.isEmpty) ...[
+          if (allSelectedDays.isEmpty || basePrice == 0) ...[
             Text(i.toString(), style: getButtonTextStyle(context)),
           ] else ...[
             Text(

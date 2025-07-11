@@ -47,21 +47,35 @@ String _formatInterval(
   }
   final start = interval.first;
   final end = interval.last;
+  final nights = interval.length - 1; // Количество ночей
   final preposition = _getPrepositionForFrom(start.day);
+  String baseText;
+  
   if (start.year == end.year) {
-    if (start.year != currentYear) {
-      // Всегда для других лет
-      return 'в ${start.year} году $preposition ${start.day} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}';
+    if (start.month == end.month) {
+      // Один месяц
+      if (start.year != currentYear) {
+        baseText = 'в ${start.year} году $preposition ${start.day} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}';
+      } else {
+        baseText = hasMultipleYears
+            ? 'в этом году $preposition ${start.day} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}'
+            : '$preposition ${start.day} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}';
+      }
     } else {
-      // Для текущего года только если есть интервалы в других годах
-      return hasMultipleYears
-          ? 'в этом году $preposition ${start.day} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}'
-          : '$preposition ${start.day} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}';
+      // Разные месяцы в одном году
+      if (start.year != currentYear) {
+        baseText = 'в ${start.year} году $preposition ${start.day} ${getMonthName(start.month, GrammaticalCase.genitive)} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}';
+      } else {
+        baseText = hasMultipleYears
+            ? 'в этом году $preposition ${start.day} ${getMonthName(start.month, GrammaticalCase.genitive)} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}'
+            : '$preposition ${start.day} ${getMonthName(start.month, GrammaticalCase.genitive)} по ${end.day} ${getMonthName(end.month, GrammaticalCase.genitive)}';
+      }
     }
   } else {
     // Интервал пересекает годы
-    return '$preposition ${_formatDate(start)} по ${_formatDate(end)}';
+    baseText = '$preposition ${_formatDate(start)} по ${_formatDate(end)}';
   }
+  return '$baseText ($nights ${getNightWord(nights)})';
 }
 
 /// Формирует текст сообщения для бронирования на основе выбранных дней для всех комнат.
@@ -112,7 +126,7 @@ String buildTelegramBookingMessage({
     allSelectedDays.addAll(days.where((d) => d.status == DayStatus.selected));
   }
   if (allSelectedDays.isNotEmpty) {
-    final priceInfo = getFullPriceInfo(allSelectedDays);
+    final priceInfo = getFullPriceInfo(allSelectedDays, daysByRoom: daysByRoom);
     message += '\n\n$priceInfo';
   }
   message += '\n\n__Заявка отправлена через Room Ranger.__';
