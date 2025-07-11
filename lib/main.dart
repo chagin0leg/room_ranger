@@ -435,10 +435,11 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
     if (_pickedRoom <= 0) return 'Выберите номер';
     
     final hasSelected = widget.daysByRoom.values.any((days) => days.any((d) => d.status == DayStatus.selected));
+    final hasInsufficient = hasInsufficientNights();
     final minNights = CalendarDayService.getMinNights();  
 
-    if (!hasSelected && !hasInsufficientNights()) return 'Выберите даты';
-    if (hasInsufficientNights()) return 'Мин. $minNights ${getNightWord(minNights)}';
+    if (!hasSelected && !hasInsufficient) return 'Выберите даты';
+    if (hasInsufficient) return 'Мин. $minNights ${getNightWord(minNights)}';
     return formatAllBookingDatesText(
       daysByRoom: widget.daysByRoom,
       selectedMonth: widget.selectedMonth,
@@ -447,9 +448,12 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
 
   String _getButtonText() {
     final hasSelected = widget.daysByRoom.values.any((days) => days.any((d) => d.status == DayStatus.selected));
+    final hasInsufficient = hasInsufficientNights();
     final minNights = CalendarDayService.getMinNights();
+    
+    // Если есть дни с недостаточным количеством ночей, показываем это
+    if (hasInsufficient) return 'Мин. $minNights ${getNightWord(minNights)}  ';
     if (hasSelected) return 'Забронировать  ';
-    if (hasInsufficientNights()) return 'Мин. $minNights ${getNightWord(minNights)}  ';
     return 'Задать вопрос  ';
   }
 
@@ -492,7 +496,10 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
               ElevatedButton(
                 onPressed: () async {
                   final hasSelected = widget.daysByRoom.values.any((days) => days.any((d) => d.status == DayStatus.selected));
-                  if (!hasSelected) return;
+                  final hasInsufficient = hasInsufficientNights();
+                  
+                  // Не позволяем переходить к заказу, если есть дни с недостаточным количеством ночей
+                  if (!hasSelected || hasInsufficient) return;
                   
                   final message = buildTelegramBookingMessage(
                     daysByRoom: widget.daysByRoom,
