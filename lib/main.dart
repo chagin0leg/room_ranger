@@ -35,6 +35,10 @@ class CalendarCell extends StatefulWidget {
 }
 
 class _CalendarCellState extends State<CalendarCell> {
+  int? _lastHoveredDay;
+  bool _isDragging = false;
+  Offset? _dragStartPosition;
+  
   Widget _month() => Text(
         getMonthName(widget.month, GrammaticalCase.nominative),
         style: getMonthTextStyle(context),
@@ -92,23 +96,18 @@ class _CalendarCellState extends State<CalendarCell> {
     }
 
     return Expanded(
-      child: GestureDetector(
-        onTap: (widget.isEnabled && day.status != DayStatus.booked && day.status != DayStatus.unavailable)
-            ? () => widget.onDateSelected(day.date)
-            : null,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              height: getCalendarCellDimension(context),
-              decoration: decoration,
-            ),
-            Text(
-              dayNumber.toString(),
-              style: getDayTextStyle(context).copyWith(color: textColor),
-            ),
-          ],
-        ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            height: getCalendarCellDimension(context),
+            decoration: decoration,
+          ),
+          Text(
+            dayNumber.toString(),
+            style: getDayTextStyle(context).copyWith(color: textColor),
+          ),
+        ],
       ),
     );
   }
@@ -148,16 +147,103 @@ class _CalendarCellState extends State<CalendarCell> {
   }
 
   Widget _buildWeeks(int daysInMonth, int firstWeekday) {
-    return Column(
-      children: List.generate(6, (week) {
-        return Row(
-          children: List.generate(7, (dayIndex) {
-            final dayNumber = week * 7 + dayIndex - firstWeekday + 2;
-            return _buildDayNumber(dayNumber, daysInMonth);
+    return LayoutBuilder(
+      builder: (context, constr) {
+        final calendarContent = Column(
+          children: List.generate(6, (week) {
+            return Row(
+              children: List.generate(7, (dayIndex) {
+                final dayNumber = week * 7 + dayIndex - firstWeekday + 2;
+                return _buildDayNumber(dayNumber, daysInMonth);
+              }, growable: false),
+            );
           }, growable: false),
         );
-      }, growable: false),
+
+
+        // Если календарь отключен, возвращаем только контент без GestureDetector
+        if (!widget.isEnabled) return calendarContent;
+
+        // Если календарь включен, оборачиваем в GestureDetector
+        return GestureDetector(
+          onTapDown: (details) {
+            _dragStartPosition = details.localPosition;
+          },
+          onPanStart: (details) {
+            setState(() {
+              _isDragging = true;
+              _handleDrag(details.localPosition, constr, daysInMonth, firstWeekday);
+            });
+          },
+          onPanUpdate: (details) => setState(() => _handleDrag(
+              details.localPosition, constr, daysInMonth, firstWeekday)),
+          onPanEnd: (details) => setState(() {
+            _lastHoveredDay = null;
+            _isDragging = false;
+            _dragStartPosition = null;
+          }),
+          onTapUp: (details) {
+            // Если это был короткий tap (не drag), обрабатываем его
+            if (_dragStartPosition != null && !_isDragging) {
+              final distance = (_dragStartPosition! - details.localPosition).distance;
+              if (distance < 5) { // Порог в 5 пикселей
+                setState(() => _handleTap(
+                    details.localPosition, constr, daysInMonth, firstWeekday));
+              }
+            }
+            _dragStartPosition = null;
+          },
+          child: calendarContent,
+        );
+      },
     );
+  }
+
+  // Общая логика выбора/снятия выбора дня
+  void _toggleDaySelection(int dayNumber, int daysInMonth) {
+    if (dayNumber < 1 || dayNumber > daysInMonth) return;
+    final day = _getDay(dayNumber);
+    if (day == null) return;
+    if (day.status == DayStatus.booked || day.status == DayStatus.unavailable) return;
+    
+    final date = DateTime(widget.year, widget.month, dayNumber);
+    widget.onDateSelected(date);
+  }
+
+  // Получение номера дня по позиции. Возвращает null, если вне диапазона.
+  int? _getDayFromPos(Offset localPos, BoxConstraints constr, int daysInMonth, int firstWeekday) {
+    final cellHeight = getCalendarCellDimension(context);
+    final cellWidth = constr.maxWidth / 7;
+    final row = (localPos.dy / cellHeight).floor();
+    final col = (localPos.dx / cellWidth).floor();
+    final dayNumber = row * 7 + col - firstWeekday + 2;
+    
+    if (row < 0 || row > 5 || col < 0 || col > 6) return null;
+    if (dayNumber < 1 || dayNumber > daysInMonth) return null;
+    
+    final day = _getDay(dayNumber);
+    if (day == null) return null;
+    if (day.status == DayStatus.booked || day.status == DayStatus.unavailable) return null;
+    
+    return dayNumber;
+  }
+
+  // Обработка клика по сетке дней
+  void _handleTap(Offset localPos, BoxConstraints constr, int daysInMonth, int firstWeekday) {
+    if (mounted) {
+      final day = _getDayFromPos(localPos, constr, daysInMonth, firstWeekday);
+      if (day == null) return;
+      _toggleDaySelection(day, daysInMonth);
+    }
+  }
+
+  // Определяет, над каким днём сейчас drag, и выделяет его
+  void _handleDrag(Offset localPos, BoxConstraints constr, int daysInMonth, int firstWeekday) {
+    final day = _getDayFromPos(localPos, constr, daysInMonth, firstWeekday);
+    if (day == null) return;
+    if (_lastHoveredDay == day) return; // Избегаем повторной обработки
+    _lastHoveredDay = day;
+    _toggleDaySelection(day, daysInMonth);
   }
 
   @override
