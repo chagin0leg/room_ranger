@@ -37,7 +37,7 @@ grep '\.ics' .env | cut -d= -f2- | tr -d '\r' | while read -r url; do
   success=0
   for attempt in $(seq 1 $MAX_RETRIES); do
     echo "Attempt $attempt: downloading $url -> $dest"
-    curl -fsSL --max-time $TIMEOUT \
+    curl --ssl-no-revoke -fsSL --max-time $TIMEOUT \
       -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36" \
       -H "Accept: text/calendar, text/plain, */*" \
       -H "Accept-Language: ru-RU,ru;q=0.9,en;q=0.8" \
@@ -50,6 +50,10 @@ grep '\.ics' .env | cut -d= -f2- | tr -d '\r' | while read -r url; do
 
   if [ $success -eq 1 ] && [ -s "$dest" ]; then
     echo "✅ Successfully downloaded: $dest"
+    if grep -q '^DTSTAMP' "$dest"; then
+      sed -i '/^DTSTAMP/d' "$dest"
+      echo "🧹 DTSTAMP lines cleaned in: $dest"
+    fi
   else
     echo "❌ Failed to download $url after $MAX_RETRIES attempts"
     [ -f "$dest" ] && rm -f "$dest"
