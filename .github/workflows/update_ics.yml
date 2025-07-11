@@ -45,14 +45,37 @@ jobs:
           kill $(cat vpn.pid) || true
           adguardvpn-cli disconnect || true
 
-      - name: Check for changes
+      - name: Check for changes (ignoring DTSTAMP)
         run: |
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
-          if ! git diff --quiet; then
-            git add assets/assets/data/*.ics
-            git commit -m "Update ICS files"
-            git push origin gh-pages
+          
+          # Проверяем изменения, исключая строки с DTSTAMP
+          if git diff --name-only | grep -q "\.ics$"; then
+            # Есть изменения в ICS файлах
+            # Проверяем, есть ли реальные изменения (не только DTSTAMP)
+            has_real_changes=false
+            
+            for file in $(git diff --name-only | grep "\.ics$"); do
+              # Создаем временные файлы без DTSTAMP строк
+              git show HEAD:$file | grep -v "^DTSTAMP:" > /tmp/old_$file
+              cat $file | grep -v "^DTSTAMP:" > /tmp/new_$file
+              
+              # Сравниваем файлы без DTSTAMP
+              if ! diff -q /tmp/old_$file /tmp/new_$file > /dev/null; then
+                has_real_changes=true
+                echo "Real changes detected in $file"
+              fi
+            done
+            
+            if [ "$has_real_changes" = true ]; then
+              echo "Committing real changes to ICS files"
+              git add assets/assets/data/*.ics
+              git commit -m "Update ICS files"
+              git push origin gh-pages
+            else
+              echo "Only DTSTAMP changes detected, skipping commit"
+            fi
           else
-            echo "No changes in ICS files"
+            echo "No ICS files changed"
           fi
