@@ -1,40 +1,82 @@
-BEGIN:VCALENDAR
-PRODID://ApiCalendar//Sutochno.ru_1.0
-VERSION:2.0
-CALSCALE:GREGORIAN
-METHOD:PUBLISH
-X-WR-TIMEZONE:Europe/Moscow
-BEGIN:VEVENT
-UID:@1104bc290c6f31bacb353fe3d2a89f11
-DTSTART:20250725T140000
-DTEND:20250803T120000
-CREATED:20250725T091326Z
-LAST-MODIFIED:20250725T091326Z
-DESCRIPTION:
-STATUS:CONFIRMED
-SUMMARY:Забронировано
-TRANSP:OPAQUE
-END:VEVENT
-BEGIN:VEVENT
-UID:@aa4e9a4e95eddf5dca7429c310c5791d
-DTSTART:20250806T140000
-DTEND:20250822T120000
-CREATED:20250806T050255Z
-LAST-MODIFIED:20250806T050255Z
-DESCRIPTION:
-STATUS:CONFIRMED
-SUMMARY:Забронировано
-TRANSP:OPAQUE
-END:VEVENT
-BEGIN:VEVENT
-UID:@d7aed6e5ef298fd3e65ccde739c1edfe
-DTSTART:20250916T140000
-DTEND:20260501T120000
-CREATED:20250916T055921Z
-LAST-MODIFIED:20250916T055921Z
-DESCRIPTION:
-STATUS:CONFIRMED
-SUMMARY:Забронировано
-TRANSP:OPAQUE
-END:VEVENT
-END:VCALENDAR
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <noscript><meta http-equiv="refresh" content="0; url=/exhkqyad"></noscript>
+</head>
+<style>
+    .container {
+      display: flex;
+      align-content: center;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .load {
+      color: grey;
+      font-size: 3vh;
+    }
+    .spinner {
+      display: block;
+      background:  url('//servicepipe.ru/loaders/default.gif');
+      width: 64px;
+      height: 64px;
+    }
+</style>
+<body>
+  <div id="id_spinner" class="container"><div class="load"></div><div class="spinner"></div></div>
+  <div id="id_captcha_frame_div" style="display: none;height: 100vh;"></div>
+  <script type="text/javascript" src="//servicepipe.ru/static/jsrsasign-all-min.js"></script>
+  <script type="text/javascript">
+
+function get_cookie_spsn() {
+  return "spsn=1758824252283_";
+}
+function get_cookie_spid() {
+  return "oirutpspid=1758824252283_567461f01b975b4ef31c64353e8aca1f_ged3xqc0kna2oiof";
+}
+function get_cookie_spsc_encrypted_part() {
+  let func = function () {/*-----BEGIN PRIVATE KEY-----
+MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBANWKiu4j/6S3+MGC
+P2MaDOlekQA93F5fDdZ3KRfZa07FWby2cEvgcqus5w06tR+cHO1ciooa4AA3jr5p
+x8faxOEJbYG52XWY2aGjDg0kgkt5fo/K+nYLBgk8g9ZrBtxE2XMb/I0K33PtOfeU
+/lT/FqNT2K9BdIfywKLxTZaWBYCzAgMBAAECgYEAsEkSTmxLhFkYM+/pkk+ULygR
+fmiTPxkrnEx9ESI9Myc64M6fwBQHtnAjwkkf83t2agGGoWJ0X9l9rvY2pmeVNUtF
+XGvqKo7UmK5lUphOQ1+sS3ObISaC+WfXo20C43TBGHBfWsp2r5mQyAHB1gKgXA1H
+SqUqMj0ibvUB1wysd+ECQQD4n9zxgwVFqpOewIONGkBDm3tj08mqZ+BVMn2BI/Ag
+7FSOOQfSUlKUGDnfYZxp2mAzurSBAitnEAxbaE7is2gDAkEA2+A+2cQ5/ZwpNI1a
+qf5G+1kKcDuzxlgov5EAdx80/dQe664IbDqUmO1+11+sbMvheVnU0fWlUWCwI7JW
+kd/dkQJBAIXuWC8hzW1B/lO+kR8pzQSedVHJfRF287nxgPpYSbrylHoo7rW18xYk
+Fsjm5EOBh+FV6na0nHzggEedYSFuU9ECQQCCLijIIif7gcPbu31cfJJmKnfFr3Nn
+Ebc+hIlz/eQQDNEp1OZjveNRD/wzZA/gcm3SvV8F2JzCq65d1C7xO0whAkBgezJo
+C6xzEZmDZPfV/rgnlJk39ShZ3wv1HZFPQPo52pcXhT3p4adYC+ac5uxhPlMT6+NY
+CoQN7BP65Jf2Ec+l
+-----END PRIVATE KEY-----
+*/};
+  let pem = func.toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
+  return KJUR.crypto.Cipher.decrypt("4c274e1171de28d888a5f6f36413058c0003849103e9dfc8be761cc97f13e1c65e03947216f22304d5e54e960d9694af137cf65b7a08eeae145a45e952c0859bc0b8bcc065939093a44923ce7310517198a92c05c0abc9be6d64dcbfa33ac8b06c7080fc7f1b305e91a85ba4ecbb766842cab01444c178fb928c8b5d182cdfcf", KEYUTIL.getKey(pem));
+}
+function get_cookie_spsc_uncrypted_part() {
+  return "";
+}
+function get_cookie_spsc() {
+  const ret = get_cookie_spsc_uncrypted_part() + get_cookie_spsc_encrypted_part();
+  return "oirutpspsc=" + ret;
+}
+function get_options() {
+  return JSON.parse('{"is_captcha":false}');
+}
+function get_location() {
+  let location = "/xpvnsulc/?back_location=https%3a%2f%2fsutochno.ru%2fcalendar%2fical%2f4085bd43645d78f472df22248e4566214771a88.ics%3futm_referrer%3dhttps%253a%252f%252fchagin0leg.github.io%252f&hcheck=85d2985c0dad8b92686542e734911fe7&request_datetime=2025-09-25+18%3a17%3a32+%2b0000&request_ip=172.182.193.97&request_id=WHpSCxAMmOs1&srv=b1f4fecab0712c71d7abe7b953481a8d&copts_k=5495f9e317953c5263d3ff240c714d9ffe29f3354fb2249194377062eed92c9d48307f6c06d34320956fba82b7a0238ce636dfc6bd7aad1a5ca3f787ae3dbe02";
+  if (location.includes("?")) {
+    location += "&";
+  } else {
+    location += "?";
+  }
+  return location + get_cookie_spid() + "&" + get_cookie_spsc();
+}
+  </script>
+  <script type="text/javascript" src="//servicepipe.ru/static/checkjs/h9phRJ-fOO.js"></script>
+</body>
+</html>

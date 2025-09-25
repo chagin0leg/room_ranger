@@ -1,62 +1,82 @@
-BEGIN:VCALENDAR
-PRODID://ApiCalendar//Sutochno.ru_1.0
-VERSION:2.0
-CALSCALE:GREGORIAN
-METHOD:PUBLISH
-X-WR-TIMEZONE:Europe/Moscow
-BEGIN:VEVENT
-UID:@16c3fb238edbefeaf3089adeda0b8d4b
-DTSTART:20250401T140000
-DTEND:20250427T120000
-CREATED:20241226T073046Z
-LAST-MODIFIED:20241226T073046Z
-DESCRIPTION:
-STATUS:CONFIRMED
-SUMMARY:Забронировано
-TRANSP:OPAQUE
-END:VEVENT
-BEGIN:VEVENT
-UID:@d8bde4d6c2502903cadc495f6eef5bb0
-DTSTART:20250507T140000
-DTEND:20250511T120000
-CREATED:20250507T183257Z
-LAST-MODIFIED:20250507T183257Z
-DESCRIPTION:
-STATUS:CONFIRMED
-SUMMARY:Забронировано
-TRANSP:OPAQUE
-END:VEVENT
-BEGIN:VEVENT
-UID:@6c067cc0791e3017872b2366ffc97c86
-DTSTART:20250627T140000
-DTEND:20250730T120000
-CREATED:20250627T171601Z
-LAST-MODIFIED:20250627T171601Z
-DESCRIPTION:
-STATUS:CONFIRMED
-SUMMARY:Забронировано
-TRANSP:OPAQUE
-END:VEVENT
-BEGIN:VEVENT
-UID:@b547229a493508087a00dcb9ea6ffa03
-DTSTART:20250804T140000
-DTEND:20250815T120000
-CREATED:20250627T171601Z
-LAST-MODIFIED:20250627T171601Z
-DESCRIPTION:
-STATUS:CONFIRMED
-SUMMARY:Забронировано
-TRANSP:OPAQUE
-END:VEVENT
-BEGIN:VEVENT
-UID:@b6516bad9cc762e7f5cae13890cc92bb
-DTSTART:20250916T140000
-DTEND:20260501T120000
-CREATED:20250916T055910Z
-LAST-MODIFIED:20250916T055910Z
-DESCRIPTION:
-STATUS:CONFIRMED
-SUMMARY:Забронировано
-TRANSP:OPAQUE
-END:VEVENT
-END:VCALENDAR
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <noscript><meta http-equiv="refresh" content="0; url=/exhkqyad"></noscript>
+</head>
+<style>
+    .container {
+      display: flex;
+      align-content: center;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .load {
+      color: grey;
+      font-size: 3vh;
+    }
+    .spinner {
+      display: block;
+      background:  url('//servicepipe.ru/loaders/default.gif');
+      width: 64px;
+      height: 64px;
+    }
+</style>
+<body>
+  <div id="id_spinner" class="container"><div class="load"></div><div class="spinner"></div></div>
+  <div id="id_captcha_frame_div" style="display: none;height: 100vh;"></div>
+  <script type="text/javascript" src="//servicepipe.ru/static/jsrsasign-all-min.js"></script>
+  <script type="text/javascript">
+
+function get_cookie_spsn() {
+  return "spsn=1758824250565_";
+}
+function get_cookie_spid() {
+  return "oirutpspid=1758824250565_f5131dfd37400c54b215fc37ac073be8_g3oxvw6jc2mm574e";
+}
+function get_cookie_spsc_encrypted_part() {
+  let func = function () {/*-----BEGIN PRIVATE KEY-----
+MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBANWKiu4j/6S3+MGC
+P2MaDOlekQA93F5fDdZ3KRfZa07FWby2cEvgcqus5w06tR+cHO1ciooa4AA3jr5p
+x8faxOEJbYG52XWY2aGjDg0kgkt5fo/K+nYLBgk8g9ZrBtxE2XMb/I0K33PtOfeU
+/lT/FqNT2K9BdIfywKLxTZaWBYCzAgMBAAECgYEAsEkSTmxLhFkYM+/pkk+ULygR
+fmiTPxkrnEx9ESI9Myc64M6fwBQHtnAjwkkf83t2agGGoWJ0X9l9rvY2pmeVNUtF
+XGvqKo7UmK5lUphOQ1+sS3ObISaC+WfXo20C43TBGHBfWsp2r5mQyAHB1gKgXA1H
+SqUqMj0ibvUB1wysd+ECQQD4n9zxgwVFqpOewIONGkBDm3tj08mqZ+BVMn2BI/Ag
+7FSOOQfSUlKUGDnfYZxp2mAzurSBAitnEAxbaE7is2gDAkEA2+A+2cQ5/ZwpNI1a
+qf5G+1kKcDuzxlgov5EAdx80/dQe664IbDqUmO1+11+sbMvheVnU0fWlUWCwI7JW
+kd/dkQJBAIXuWC8hzW1B/lO+kR8pzQSedVHJfRF287nxgPpYSbrylHoo7rW18xYk
+Fsjm5EOBh+FV6na0nHzggEedYSFuU9ECQQCCLijIIif7gcPbu31cfJJmKnfFr3Nn
+Ebc+hIlz/eQQDNEp1OZjveNRD/wzZA/gcm3SvV8F2JzCq65d1C7xO0whAkBgezJo
+C6xzEZmDZPfV/rgnlJk39ShZ3wv1HZFPQPo52pcXhT3p4adYC+ac5uxhPlMT6+NY
+CoQN7BP65Jf2Ec+l
+-----END PRIVATE KEY-----
+*/};
+  let pem = func.toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
+  return KJUR.crypto.Cipher.decrypt("bc3a3233581c5c60bd64f5ee9d0d7203ebb99ebdd06bd760761ac3d4963453d7d8bb6647acd747c2cc5cfde8a3d41318b48328ed98f73e43be0bb7aa37fdb890c0f9e3414c101bbcaeb853870f161d9dd72b6ca3634bbdbedbb7e72ec8267622b995a38e121bdee02ef8db848a7e6eb53a1e7f4090b3faae02ad24c8e1e2b70d", KEYUTIL.getKey(pem));
+}
+function get_cookie_spsc_uncrypted_part() {
+  return "";
+}
+function get_cookie_spsc() {
+  const ret = get_cookie_spsc_uncrypted_part() + get_cookie_spsc_encrypted_part();
+  return "oirutpspsc=" + ret;
+}
+function get_options() {
+  return JSON.parse('{"is_captcha":false}');
+}
+function get_location() {
+  let location = "/xpvnsulc/?back_location=https%3a%2f%2fsutochno.ru%2fcalendar%2fical%2fbd04d8c9335677cf2d43bd99d531d142e61e45.ics%3futm_referrer%3dhttps%253a%252f%252fchagin0leg.github.io%252f&hcheck=6e5fe8ff21e06f8fca7e6d48835871ee&request_datetime=2025-09-25+18%3a17%3a30+%2b0000&request_ip=172.182.193.97&request_id=UHpdrqQBCW21&srv=b1f4fecab0712c71d7abe7b953481a8d&copts_k=67722dadf4739be24df8377dc5e4f4e671790456a3e354e0d0aca145f25d54834a3f370287448be6007c9dda74d189738a0f11247a33693097229c0064c79a51";
+  if (location.includes("?")) {
+    location += "&";
+  } else {
+    location += "?";
+  }
+  return location + get_cookie_spid() + "&" + get_cookie_spsc();
+}
+  </script>
+  <script type="text/javascript" src="//servicepipe.ru/static/checkjs/R4TzU_fMe_.js"></script>
+</body>
+</html>
