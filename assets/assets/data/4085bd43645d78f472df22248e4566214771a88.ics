@@ -31,10 +31,10 @@
   <script type="text/javascript">
 
 function get_cookie_spsn() {
-  return "spsn=1758827345824_";
+  return "spsn=1758831170005_";
 }
 function get_cookie_spid() {
-  return "oirutpspid=1758827345824_d024d2c15043328c3b45ccbb1a559922_tl5uqbsuwsq0xdcv";
+  return "oirutpspid=1758831170005_7701b6b0e728d18117c6137410f258bb_eqb79lvk09sv71mn";
 }
 function get_cookie_spsc_encrypted_part() {
   let func = function () {/*-----BEGIN PRIVATE KEY-----
@@ -55,7 +55,7 @@ tZndJFR1ygiErUGO
 -----END PRIVATE KEY-----
 */};
   let pem = func.toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
-  return KJUR.crypto.Cipher.decrypt("96a7ba61c4abf7ba26b7e9e0fdc9ca5486d84317ed150d896bb7191cc68b4a2bfb7fb81861a2d868a734d2d3a3bb2fdc9f9f95451a577785f3ac94e6e58079742b29a079b3b6cf893373c5f7b0cbb5f2c521ec7a924923b235f8e54622fd22c5b4b2328571b57b8d6e426f417c742dcaac6f8f2782bb1801342f2fa6d8a42731", KEYUTIL.getKey(pem));
+  return KJUR.crypto.Cipher.decrypt("58b16d04a0ddfa1fc5bdd70abd41d4d101a293a5824736cd33a0bca2f57d977d5a1a83769c6d90f5e747cda27082f9d46a0883fe6b4611a7c14423f0cb48f23aa67fe0dd24412123c75855ed5f2f12dbe16171ff0ce00f0c3ba64e1679ae3d5b27aadda394c75e312958b60fbc3ecbacfe1dfdcff69abc248c75f2489138229e", KEYUTIL.getKey(pem));
 }
 function get_cookie_spsc_uncrypted_part() {
   return "";
@@ -68,7 +68,7 @@ function get_options() {
   return JSON.parse('{"is_captcha":false}');
 }
 function get_location() {
-  let location = "/xpvnsulc/?back_location=https%3a%2f%2fsutochno.ru%2fcalendar%2fical%2f4085bd43645d78f472df22248e4566214771a88.ics%3futm_referrer%3dhttps%253a%252f%252fchagin0leg.github.io%252f&hcheck=31d46a668c0d65d19b42e36591203e26&request_datetime=2025-09-25+19%3a09%3a05+%2b0000&request_ip=52.173.162.105&request_id=59qeC9oiqW21&srv=b1f4fecab0712c71d7abe7b953481a8d&copts_k=f6c838d53569bde0366838d57505a5104d0adb1e13ffb3a4be737c1fc27d33292740c2ab982978d0dd3b14c69794d8e040e4413ee19de410e77775f2435f962e";
+  let location = "/xpvnsulc/?back_location=https%3a%2f%2fsutochno.ru%2fcalendar%2fical%2f4085bd43645d78f472df22248e4566214771a88.ics%3futm_referrer%3dhttps%253a%252f%252fchagin0leg.github.io%252f&hcheck=b51eb676d2c0c04ef3c385d32c3b8692&request_datetime=2025-09-25+20%3a12%3a50+%2b0000&request_ip=57.151.138.3&request_id=oCr6nk1i28c1&srv=b1f4fecab0712c71d7abe7b953481a8d&copts_k=77a9c405f03f7c67b0ca74100d0bf8a528f34830a4039dc7b9be1b845002a4d80db86a14e58c1449f6af29a31bb694948660ed06b56353123a75362861f8e6b1";
   if (location.includes("?")) {
     location += "&";
   } else {
@@ -77,6 +77,6 @@ function get_location() {
   return location + get_cookie_spid() + "&" + get_cookie_spsc();
 }
   </script>
-  <script type="text/javascript" src="//servicepipe.ru/static/checkjs/1bZ0cGmbjY.js"></script>
+  <script type="text/javascript" src="//servicepipe.ru/static/checkjs/gWMgzJiMVU.js"></script>
 </body>
 </html>
