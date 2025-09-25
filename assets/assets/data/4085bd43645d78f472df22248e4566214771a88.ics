@@ -31,31 +31,31 @@
   <script type="text/javascript">
 
 function get_cookie_spsn() {
-  return "spsn=1758824252283_";
+  return "spsn=1758827345824_";
 }
 function get_cookie_spid() {
-  return "oirutpspid=1758824252283_567461f01b975b4ef31c64353e8aca1f_ged3xqc0kna2oiof";
+  return "oirutpspid=1758827345824_d024d2c15043328c3b45ccbb1a559922_tl5uqbsuwsq0xdcv";
 }
 function get_cookie_spsc_encrypted_part() {
   let func = function () {/*-----BEGIN PRIVATE KEY-----
-MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBANWKiu4j/6S3+MGC
-P2MaDOlekQA93F5fDdZ3KRfZa07FWby2cEvgcqus5w06tR+cHO1ciooa4AA3jr5p
-x8faxOEJbYG52XWY2aGjDg0kgkt5fo/K+nYLBgk8g9ZrBtxE2XMb/I0K33PtOfeU
-/lT/FqNT2K9BdIfywKLxTZaWBYCzAgMBAAECgYEAsEkSTmxLhFkYM+/pkk+ULygR
-fmiTPxkrnEx9ESI9Myc64M6fwBQHtnAjwkkf83t2agGGoWJ0X9l9rvY2pmeVNUtF
-XGvqKo7UmK5lUphOQ1+sS3ObISaC+WfXo20C43TBGHBfWsp2r5mQyAHB1gKgXA1H
-SqUqMj0ibvUB1wysd+ECQQD4n9zxgwVFqpOewIONGkBDm3tj08mqZ+BVMn2BI/Ag
-7FSOOQfSUlKUGDnfYZxp2mAzurSBAitnEAxbaE7is2gDAkEA2+A+2cQ5/ZwpNI1a
-qf5G+1kKcDuzxlgov5EAdx80/dQe664IbDqUmO1+11+sbMvheVnU0fWlUWCwI7JW
-kd/dkQJBAIXuWC8hzW1B/lO+kR8pzQSedVHJfRF287nxgPpYSbrylHoo7rW18xYk
-Fsjm5EOBh+FV6na0nHzggEedYSFuU9ECQQCCLijIIif7gcPbu31cfJJmKnfFr3Nn
-Ebc+hIlz/eQQDNEp1OZjveNRD/wzZA/gcm3SvV8F2JzCq65d1C7xO0whAkBgezJo
-C6xzEZmDZPfV/rgnlJk39ShZ3wv1HZFPQPo52pcXhT3p4adYC+ac5uxhPlMT6+NY
-CoQN7BP65Jf2Ec+l
+MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBANExHE1UE3pYl6pX
+2TXdsAfc91przQOfCnp0Flke2JH4dll3Sqv9kstR3nUjxhdSS35I8W5EchOghmwu
+md1AU96jWdPlbXh1iO8MnFrT92aLvMniGzIbqnOLuU6j+GFL5bDOi1f2IHErUY+l
+PY3HNaEQL8fu13t1K5CAtuJOgp+1AgMBAAECgYEAhl9Gb8GO1Wrs2SWex8QD27kr
+RfCy+x2AzJGe/VYcBP+VffhrhbjXPzTycUouZzKcfZz7QDpFEKhvUDRK71zvwYu6
+BRY+SCqTHZsO77/F4nV9dSs8H3peo8ByLvmM8yiowGQ4ukFHnY4R9IepbYTbZSAe
+voJkATEPW/PY6mtbnW0CQQD8k22JEE5pPSq7wH77JYNbxlRf60L/vW/FjpIiZek7
+KJ445Ac+CVI6PPNOvZYh6YAs77vkYgMPzTUqxpVStJMvAkEA1Acd9mwxyMAcdKMk
+AhbN4Gcp8gyMnwR0/kQu/5ZLvGF7wk0MnBTEuRmbFNdrfyzGIPsuBZEDulZ2m8zb
+n1cSWwJBAOwtZ4V9K/UYbzc1Xwe1IknVANzYfsPo/fU7xcZIiXj6GEmWYHdP/AXd
+LJ56hUKct3BNk+KRC8/g0VB4dPTrSZ0CQQCfMJzBaGhUdlCnDdm6K871Hd+zWNK3
+jYwdX6n9waUpUfOuZVUDVuCArQXvtvGBsWcsWgoqqb8nx0UUItH+J0yjAkAS9VuA
+csZrs+Ul/qFQA4Tb679GcG+u0duArSe3WFd3OqT6JIeb6fqP+caHHVwFAY3asBx+
+tZndJFR1ygiErUGO
 -----END PRIVATE KEY-----
 */};
   let pem = func.toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
-  return KJUR.crypto.Cipher.decrypt("4c274e1171de28d888a5f6f36413058c0003849103e9dfc8be761cc97f13e1c65e03947216f22304d5e54e960d9694af137cf65b7a08eeae145a45e952c0859bc0b8bcc065939093a44923ce7310517198a92c05c0abc9be6d64dcbfa33ac8b06c7080fc7f1b305e91a85ba4ecbb766842cab01444c178fb928c8b5d182cdfcf", KEYUTIL.getKey(pem));
+  return KJUR.crypto.Cipher.decrypt("96a7ba61c4abf7ba26b7e9e0fdc9ca5486d84317ed150d896bb7191cc68b4a2bfb7fb81861a2d868a734d2d3a3bb2fdc9f9f95451a577785f3ac94e6e58079742b29a079b3b6cf893373c5f7b0cbb5f2c521ec7a924923b235f8e54622fd22c5b4b2328571b57b8d6e426f417c742dcaac6f8f2782bb1801342f2fa6d8a42731", KEYUTIL.getKey(pem));
 }
 function get_cookie_spsc_uncrypted_part() {
   return "";
@@ -68,7 +68,7 @@ function get_options() {
   return JSON.parse('{"is_captcha":false}');
 }
 function get_location() {
-  let location = "/xpvnsulc/?back_location=https%3a%2f%2fsutochno.ru%2fcalendar%2fical%2f4085bd43645d78f472df22248e4566214771a88.ics%3futm_referrer%3dhttps%253a%252f%252fchagin0leg.github.io%252f&hcheck=85d2985c0dad8b92686542e734911fe7&request_datetime=2025-09-25+18%3a17%3a32+%2b0000&request_ip=172.182.193.97&request_id=WHpSCxAMmOs1&srv=b1f4fecab0712c71d7abe7b953481a8d&copts_k=5495f9e317953c5263d3ff240c714d9ffe29f3354fb2249194377062eed92c9d48307f6c06d34320956fba82b7a0238ce636dfc6bd7aad1a5ca3f787ae3dbe02";
+  let location = "/xpvnsulc/?back_location=https%3a%2f%2fsutochno.ru%2fcalendar%2fical%2f4085bd43645d78f472df22248e4566214771a88.ics%3futm_referrer%3dhttps%253a%252f%252fchagin0leg.github.io%252f&hcheck=31d46a668c0d65d19b42e36591203e26&request_datetime=2025-09-25+19%3a09%3a05+%2b0000&request_ip=52.173.162.105&request_id=59qeC9oiqW21&srv=b1f4fecab0712c71d7abe7b953481a8d&copts_k=f6c838d53569bde0366838d57505a5104d0adb1e13ffb3a4be737c1fc27d33292740c2ab982978d0dd3b14c69794d8e040e4413ee19de410e77775f2435f962e";
   if (location.includes("?")) {
     location += "&";
   } else {
@@ -77,6 +77,6 @@ function get_location() {
   return location + get_cookie_spid() + "&" + get_cookie_spsc();
 }
   </script>
-  <script type="text/javascript" src="//servicepipe.ru/static/checkjs/h9phRJ-fOO.js"></script>
+  <script type="text/javascript" src="//servicepipe.ru/static/checkjs/1bZ0cGmbjY.js"></script>
 </body>
 </html>
