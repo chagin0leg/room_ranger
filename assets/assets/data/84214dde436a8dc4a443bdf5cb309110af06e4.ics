@@ -1,82 +1,62 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  <noscript><meta http-equiv="refresh" content="0; url=/exhkqyad"></noscript>
-</head>
-<style>
-    .container {
-      display: flex;
-      align-content: center;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-    .load {
-      color: grey;
-      font-size: 3vh;
-    }
-    .spinner {
-      display: block;
-      background:  url('//servicepipe.ru/loaders/default.gif');
-      width: 64px;
-      height: 64px;
-    }
-</style>
-<body>
-  <div id="id_spinner" class="container"><div class="load"></div><div class="spinner"></div></div>
-  <div id="id_captcha_frame_div" style="display: none;height: 100vh;"></div>
-  <script type="text/javascript" src="//servicepipe.ru/static/jsrsasign-all-min.js"></script>
-  <script type="text/javascript">
-
-function get_cookie_spsn() {
-  return "spsn=1758834611922_";
-}
-function get_cookie_spid() {
-  return "oirutpspid=1758834611922_64e9191f41176a87aaadb76e2e4baf1c_6bqce23nkf1b8u8b";
-}
-function get_cookie_spsc_encrypted_part() {
-  let func = function () {/*-----BEGIN PRIVATE KEY-----
-MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBANWKiu4j/6S3+MGC
-P2MaDOlekQA93F5fDdZ3KRfZa07FWby2cEvgcqus5w06tR+cHO1ciooa4AA3jr5p
-x8faxOEJbYG52XWY2aGjDg0kgkt5fo/K+nYLBgk8g9ZrBtxE2XMb/I0K33PtOfeU
-/lT/FqNT2K9BdIfywKLxTZaWBYCzAgMBAAECgYEAsEkSTmxLhFkYM+/pkk+ULygR
-fmiTPxkrnEx9ESI9Myc64M6fwBQHtnAjwkkf83t2agGGoWJ0X9l9rvY2pmeVNUtF
-XGvqKo7UmK5lUphOQ1+sS3ObISaC+WfXo20C43TBGHBfWsp2r5mQyAHB1gKgXA1H
-SqUqMj0ibvUB1wysd+ECQQD4n9zxgwVFqpOewIONGkBDm3tj08mqZ+BVMn2BI/Ag
-7FSOOQfSUlKUGDnfYZxp2mAzurSBAitnEAxbaE7is2gDAkEA2+A+2cQ5/ZwpNI1a
-qf5G+1kKcDuzxlgov5EAdx80/dQe664IbDqUmO1+11+sbMvheVnU0fWlUWCwI7JW
-kd/dkQJBAIXuWC8hzW1B/lO+kR8pzQSedVHJfRF287nxgPpYSbrylHoo7rW18xYk
-Fsjm5EOBh+FV6na0nHzggEedYSFuU9ECQQCCLijIIif7gcPbu31cfJJmKnfFr3Nn
-Ebc+hIlz/eQQDNEp1OZjveNRD/wzZA/gcm3SvV8F2JzCq65d1C7xO0whAkBgezJo
-C6xzEZmDZPfV/rgnlJk39ShZ3wv1HZFPQPo52pcXhT3p4adYC+ac5uxhPlMT6+NY
-CoQN7BP65Jf2Ec+l
------END PRIVATE KEY-----
-*/};
-  let pem = func.toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
-  return KJUR.crypto.Cipher.decrypt("1195350f812605578d44c5f3e840d6867d7f8fe6e2c937c584b45e99b5afcc4009f4674a45f641506e9eaf30780431e4aba0a6ba0a9d15ad6a22baf0fbf6d2a4832fe4bf56594f2e8e9d9e561e6103b9f6c45c4331a22721c0e5404bc47a0ba7d6d0c8cb346705450bb0491db1ad1d830ce3e90237410f5b37a5db90d4c9a3a2", KEYUTIL.getKey(pem));
-}
-function get_cookie_spsc_uncrypted_part() {
-  return "";
-}
-function get_cookie_spsc() {
-  const ret = get_cookie_spsc_uncrypted_part() + get_cookie_spsc_encrypted_part();
-  return "oirutpspsc=" + ret;
-}
-function get_options() {
-  return JSON.parse('{"is_captcha":false}');
-}
-function get_location() {
-  let location = "/xpvnsulc/?back_location=https%3a%2f%2fsutochno.ru%2fcalendar%2fical%2f84214dde436a8dc4a443bdf5cb309110af06e4.ics%3futm_referrer%3dhttps%253a%252f%252fchagin0leg.github.io%252f&hcheck=d416f9dcb5c5905f0cbfee571318058e&request_datetime=2025-09-25+21%3a10%3a11+%2b0000&request_ip=52.159.229.4&request_id=BAsKRVVMISw1&srv=b1f4fecab0712c71d7abe7b953481a8d&copts_k=3b1f225dacc33388d57b3280bdee85ff695d7cc8d53e50cba8c6698708c682175b7e257a1911933e06fa93594a7e6c420f29109361d3a8ffcd60ac6664f1c573";
-  if (location.includes("?")) {
-    location += "&";
-  } else {
-    location += "?";
-  }
-  return location + get_cookie_spid() + "&" + get_cookie_spsc();
-}
-  </script>
-  <script type="text/javascript" src="//servicepipe.ru/static/checkjs/OVok7T0xZR.js"></script>
-</body>
-</html>
+BEGIN:VCALENDAR
+PRODID://ApiCalendar//Sutochno.ru_1.0
+VERSION:2.0
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-TIMEZONE:Europe/Moscow
+BEGIN:VEVENT
+UID:@b5d9708e15d9e7cefabaecc1b068af79
+DTSTART:20250425T140000
+DTEND:20250427T120000
+CREATED:20250425T071952Z
+LAST-MODIFIED:20250425T071952Z
+DESCRIPTION:
+STATUS:CONFIRMED
+SUMMARY:Недоступно
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:@2137a2162c9c67a6fe2aa377ad78ea07
+DTSTART:20250507T140000
+DTEND:20250511T120000
+CREATED:20250507T181320Z
+LAST-MODIFIED:20250507T181320Z
+DESCRIPTION:
+STATUS:CONFIRMED
+SUMMARY:Недоступно
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:@6d8925b1a21a257e1b1f43351b5f2529
+DTSTART:20250709T140000
+DTEND:20250710T120000
+CREATED:20250709T145234Z
+LAST-MODIFIED:20250709T145234Z
+DESCRIPTION:
+STATUS:CONFIRMED
+SUMMARY:Забронировано
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:@229f90d62f0730b0e6cdb7d153326417
+DTSTART:20250806T140000
+DTEND:20250819T120000
+CREATED:20250806T050306Z
+LAST-MODIFIED:20250806T050306Z
+DESCRIPTION:
+STATUS:CONFIRMED
+SUMMARY:Забронировано
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:@450bca792004192651aa64c2437bd9ea
+DTSTART:20250925T140000
+DTEND:20260501T120000
+CREATED:20250925T060911Z
+LAST-MODIFIED:20250925T060911Z
+DESCRIPTION:
+STATUS:CONFIRMED
+SUMMARY:Забронировано
+TRANSP:OPAQUE
+END:VEVENT
+END:VCALENDAR
