@@ -209,8 +209,9 @@ class _CalendarCellState extends State<CalendarCell> {
     if (dayNumber < 1 || dayNumber > daysInMonth) return;
     final day = _getDay(dayNumber);
     if (day == null) return;
-    if (day.status == DayStatus.booked || day.status == DayStatus.unavailable)
+    if (day.status == DayStatus.booked || day.status == DayStatus.unavailable) {
       return;
+    }
 
     final date = DateTime(widget.year, widget.month, dayNumber);
     widget.onDateSelected(date);
@@ -230,8 +231,9 @@ class _CalendarCellState extends State<CalendarCell> {
 
     final day = _getDay(dayNumber);
     if (day == null) return null;
-    if (day.status == DayStatus.booked || day.status == DayStatus.unavailable)
+    if (day.status == DayStatus.booked || day.status == DayStatus.unavailable) {
       return null;
+    }
 
     return dayNumber;
   }
@@ -527,7 +529,7 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
                       final hasInsufficient = hasInsufficientNights();
 
                       // Не позволяем переходить к заказу, если есть дни с недостаточным количеством ночей
-                      if (!hasSelected || hasInsufficient) return;
+                      if (hasInsufficient) return;
 
                       final message = buildTelegramBookingMessage(
                         daysByRoom: widget.daysByRoom,
@@ -551,6 +553,7 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
                         ],
                         Text(_getButtonText(),
                             style: getButtonTextStyle(context)),
+                        Container(),
                       ],
                     ),
                   ),
