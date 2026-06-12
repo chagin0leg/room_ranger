@@ -6,28 +6,22 @@ on:
   workflow_dispatch:
 
 jobs:
-  update-ics:
+  update-calendars:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout main branch (script)
+      - name: Checkout main branch
         uses: actions/checkout@v4
         with:
           ref: main
 
-      - name: Copy download_ics.sh to temp
-        run: |
-          cp download_ics.sh /tmp/download_ics.sh
-          cp .env /tmp/.env
-
-      - name: Checkout gh-pages branch
-        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          ref: gh-pages
+          node-version: '20'
+          cache: npm
 
-      - name: Move script from temp to workspace
-        run: |
-          mv /tmp/download_ics.sh assets/download_ics.sh
-          mv /tmp/.env assets/.env
+      - name: Install dependencies
+        run: npm ci
 
       - name: Install, Login and Connect to VPN (background)
         run: |
@@ -38,21 +32,55 @@ jobs:
 
       - name: Download ICS files
         run: bash download_ics.sh
-        working-directory: assets
 
       - name: Disconnect VPN
         run: |
           kill $(cat vpn.pid) || true
           adguardvpn-cli disconnect || true
 
-      - name: Check for changes
+      - name: Build HTML calendar data
+        run: node scripts/build_data.mjs
+
+      - name: Commit HTML calendar data
+        id: html_commit
         run: |
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
-          if ! git diff --quiet; then
+          if git diff --quiet html/assets/data.json; then
+            echo "html_changed=false" >> $GITHUB_OUTPUT
+            echo "No changes in HTML calendar data"
+          else
+            git add html/assets/data.json
+            git commit -m "Update HTML calendar data"
+            git push origin main
+            echo "html_changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy HTML to gh-pages-2
+        if: steps.html_commit.outputs.html_changed == 'true'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./html
+          publish_branch: gh-pages-2
+
+      - name: Checkout gh-pages for Flutter
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages-flutter
+
+      - name: Update Flutter ICS on gh-pages
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          mkdir -p gh-pages-flutter/assets/assets/data
+          cp assets/data/*.ics gh-pages-flutter/assets/assets/data/
+          cd gh-pages-flutter
+          if git diff --quiet; then
+            echo "No changes in Flutter ICS files"
+          else
             git add assets/assets/data/*.ics
             git commit -m "Update ICS files"
             git push origin gh-pages
-          else
-            echo "No changes in ICS files"
           fi
