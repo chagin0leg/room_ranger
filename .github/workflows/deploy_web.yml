@@ -33,35 +33,42 @@ jobs:
           path: ~/.flutter
           key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.yaml') }}
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
       - name: Auto increment build number
         id: version
         run: |
-          # Читаем текущую версию из pubspec.yaml
           CURRENT_VERSION=$(grep 'version:' pubspec.yaml | sed 's/version: //')
           VERSION_PART=$(echo $CURRENT_VERSION | cut -d'+' -f1)
-          
-          # Получаем общее количество коммитов в репозитории
           TOTAL_COMMITS=$(git rev-list --count HEAD)
-          
-          # Используем количество коммитов как build number
           NEW_VERSION="$VERSION_PART+$TOTAL_COMMITS"
-          
-          # Обновляем pubspec.yaml только если версия изменилась
+
           if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
             sed -i "s/version: $CURRENT_VERSION/version: $NEW_VERSION/" pubspec.yaml
-            echo "Updated version from $CURRENT_VERSION to $NEW_VERSION"
-          else
-            echo "Version unchanged: $CURRENT_VERSION"
+            echo "Updated Flutter version from $CURRENT_VERSION to $NEW_VERSION"
           fi
-          
-          # Используем новый формат для передачи данных между шагами
+
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.build = String($TOTAL_COMMITS);
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+
           echo "version=$VERSION_PART" >> $GITHUB_OUTPUT
           echo "build=$TOTAL_COMMITS" >> $GITHUB_OUTPUT
           echo "full_version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "total_commits=$TOTAL_COMMITS" >> $GITHUB_OUTPUT
 
-      - name: Install dependencies
+      - name: Install Flutter dependencies
         run: flutter pub get
+
+      - name: Install Node dependencies
+        run: npm ci
 
       - name: Install, Login and Connect to VPN (background)
         run: |
@@ -78,73 +85,78 @@ jobs:
           kill $(cat vpn.pid) || true
           adguardvpn-cli disconnect || true
 
-      - name: Build web
+      - name: Build HTML calendar data
+        run: BUILD_NUMBER=${{ steps.version.outputs.build }} node scripts/build_data.mjs
+
+      - name: Build Flutter web
         run: flutter build web --release --base-href /${{ github.event.repository.name }}/
 
-      - name: Deploy to GitHub Pages
+      - name: Deploy Flutter to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build/web
+          publish_branch: gh-pages
+
+      - name: Deploy HTML to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./html
+          publish_branch: gh-pages-2
 
       - name: Get commit history
         id: commits
         run: |
-          # Получаем последний тег (релиз)
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          
+
           if [ -n "$LAST_TAG" ]; then
-            # Получаем коммиты с последнего релиза и форматируем как ссылки
             COMMIT_LIST=$(git log --oneline --no-merges --format="%H %s" ${LAST_TAG}..HEAD | head -10 | while read hash message; do
               short_hash=${hash:0:7}
               echo "- [\`$short_hash\`](https://github.com/${{ github.repository }}/commit/$hash) $message"
             done)
-            echo "commits<<EOF" >> $GITHUB_OUTPUT
-            echo "$COMMIT_LIST" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-            echo "has_commits=true" >> $GITHUB_OUTPUT
           else
-            # Если это первый релиз, получаем все коммиты
             COMMIT_LIST=$(git log --oneline --no-merges --format="%H %s" | head -10 | while read hash message; do
               short_hash=${hash:0:7}
               echo "- [\`$short_hash\`](https://github.com/${{ github.repository }}/commit/$hash) $message"
             done)
-            echo "commits<<EOF" >> $GITHUB_OUTPUT
-            echo "$COMMIT_LIST" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-            echo "has_commits=true" >> $GITHUB_OUTPUT
           fi
+
+          echo "commits<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMIT_LIST" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "has_commits=true" >> $GITHUB_OUTPUT
 
       - name: Create Release
         run: |
           cat > release_notes.md << 'EOF'
           ## Автоматический релиз
-          
+
           ### Версия
           - **Версия:** ${{ steps.version.outputs.version }}
           - **Сборка:** ${{ steps.version.outputs.build }}
-          - **Полная версия:** ${{ steps.version.outputs.full_version }}
-          
+          - **Полная версия (Flutter):** ${{ steps.version.outputs.full_version }}
+
           ### Технические детали
           - Дата сборки: ${{ github.event.head_commit.timestamp }}
           - Коммит: [`${{ github.sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
           EOF
-          
-          # Добавляем секцию изменений только если есть коммиты
+
           if [ "${{ steps.commits.outputs.has_commits }}" = "true" ]; then
             cat >> release_notes.md << 'EOF'
-            
+
           ### Изменения
           ${{ steps.commits.outputs.commits }}
           EOF
           fi
-          
+
           cat >> release_notes.md << 'EOF'
-          
+
           ### Скачать
-          - [Веб-версия](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/)
+          - [Flutter Web (gh-pages)](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/)
+          - [HTML (gh-pages-2)](https://github.com/${{ github.repository }}/tree/gh-pages-2)
           EOF
-          
+
           gh release create "v${{ steps.version.outputs.version }}-${{ steps.version.outputs.build }}" \
             --title "Room Ranger ${{ steps.version.outputs.version }} (${{ steps.version.outputs.build }})" \
             --notes-file release_notes.md \
@@ -152,10 +164,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Commit version update
+      - name: Commit build artifacts
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add pubspec.yaml
+          git add pubspec.yaml package.json html/assets/data.json
           git commit -m "Update build number to ${{ steps.version.outputs.build }} (total commits: ${{ steps.version.outputs.total_commits }})" || exit 0
-          git push 
+          git push

@@ -1,0 +1,14 @@
+{
+  "name": "room-ranger",
+  "version": "0.9.2",
+  "build": "141",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:data": "node scripts/build_data.mjs",
+    "verify": "node scripts/verify_parity.mjs"
+  },
+  "dependencies": {
+    "node-ical": "^0.19.0"
+  }
+}
