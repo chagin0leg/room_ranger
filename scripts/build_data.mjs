@@ -48,29 +48,101 @@ function extractIcsFileName(url) {
 }
 
 /**
- * @param {Date} date
+ * @param {string} value DTSTART/DTEND value, e.g. 20260421T140000 or 20260421
+ * @returns {{ y: number, m: number, d: number } | null}
  */
-function dateKey(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
+function parseIcsDateParts(value) {
+  const m = String(value).trim().match(/^(\d{4})(\d{2})(\d{2})/);
+  if (!m) return null;
+  return { y: Number(m[1]), m: Number(m[2]), d: Number(m[3]) };
 }
 
 /**
+ * @param {{ y: number, m: number, d: number }} parts
+ */
+function partsToKey(parts) {
+  return parts.y * 10000 + parts.m * 100 + parts.d;
+}
+
+/**
+ * @param {{ y: number, m: number, d: number }} parts
+ */
+function partsToDateKey(parts) {
+  return `${parts.y}-${String(parts.m).padStart(2, '0')}-${String(parts.d).padStart(2, '0')}`;
+}
+
+/**
+ * @param {{ y: number, m: number, d: number }} parts
+ */
+function addDayParts(parts) {
+  const dt = new Date(parts.y, parts.m - 1, parts.d + 1);
+  return { y: dt.getFullYear(), m: dt.getMonth() + 1, d: dt.getDate() };
+}
+
+/**
+ * Occupied nights for sutochno bookings: from check-in through checkout day (inclusive).
+ * Uses calendar dates from ICS as-is (Europe/Moscow), without timezone conversion.
+ *
+ * @param {{ y: number, m: number, d: number }} start
+ * @param {{ y: number, m: number, d: number }} end
+ */
+function expandBookedRange(start, end) {
+  /** @type {string[]} */
+  const dates = [];
+  let current = start;
+  const endKey = partsToKey(end);
+  while (partsToKey(current) <= endKey) {
+    dates.push(partsToDateKey(current));
+    current = addDayParts(current);
+  }
+  return dates;
+}
+
+/**
+ * Price/date ranges: DTEND is exclusive (iCalendar convention).
+ *
  * @param {Date} start
  * @param {Date} end
  */
 function expandDateRange(start, end) {
   /** @type {string[]} */
   const dates = [];
-  const current = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-  const last = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-  while (current < last) {
-    dates.push(dateKey(current));
-    current.setDate(current.getDate() + 1);
+  const startParts = parseIcsDateParts(
+    `${start.getFullYear()}${String(start.getMonth() + 1).padStart(2, '0')}${String(start.getDate()).padStart(2, '0')}`,
+  );
+  const endParts = parseIcsDateParts(
+    `${end.getFullYear()}${String(end.getMonth() + 1).padStart(2, '0')}${String(end.getDate()).padStart(2, '0')}`,
+  );
+  if (!startParts || !endParts) return dates;
+
+  let current = startParts;
+  const endKey = partsToKey(endParts);
+  while (partsToKey(current) < endKey) {
+    dates.push(partsToDateKey(current));
+    current = addDayParts(current);
   }
   return dates;
+}
+
+/**
+ * @param {string} content
+ */
+function parseBookedDatesFromIcs(content) {
+  /** @type {Set<string>} */
+  const booked = new Set();
+  const blocks = content.split('BEGIN:VEVENT');
+  for (const block of blocks.slice(1)) {
+    const startMatch = block.match(/^DTSTART(?:;[^:\r\n]*)?:(\S+)/m);
+    const endMatch = block.match(/^DTEND(?:;[^:\r\n]*)?:(\S+)/m);
+    if (!startMatch) continue;
+    const start = parseIcsDateParts(startMatch[1]);
+    const end = endMatch ? parseIcsDateParts(endMatch[1]) : start;
+    if (!start || !end) continue;
+    for (const key of expandBookedRange(start, end)) {
+      booked.add(key);
+    }
+  }
+  return [...booked].sort();
 }
 
 /**
@@ -106,19 +178,7 @@ function parseBookedDates(filePath) {
     return [];
   }
   const content = fs.readFileSync(filePath, 'utf8');
-  const calendar = ical.parseICS(content);
-  /** @type {Set<string>} */
-  const booked = new Set();
-  for (const event of Object.values(calendar)) {
-    if (!event || typeof event !== 'object' || event.type !== 'VEVENT') continue;
-    const start = event.start ? new Date(event.start) : null;
-    const end = event.end ? new Date(event.end) : start;
-    if (!start) continue;
-    for (const key of expandDateRange(start, end ?? start)) {
-      booked.add(key);
-    }
-  }
-  return [...booked].sort();
+  return parseBookedDatesFromIcs(content);
 }
 
 /**
@@ -143,7 +203,14 @@ function parsePrices(filePath) {
     const end = event.end ? new Date(event.end) : null;
     if (!start) continue;
 
-    const dates = end ? expandDateRange(start, end) : [dateKey(start)];
+    const startParts = parseIcsDateParts(
+      `${start.getFullYear()}${String(start.getMonth() + 1).padStart(2, '0')}${String(start.getDate()).padStart(2, '0')}`,
+    );
+    if (!startParts) continue;
+
+    const dates = end
+      ? expandDateRange(start, end)
+      : [partsToDateKey(startParts)];
     for (const key of dates) {
       byDate[key] = {
         price: priceInfo.price,
