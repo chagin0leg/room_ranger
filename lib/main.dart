@@ -77,9 +77,6 @@ class _CalendarCellState extends State<CalendarCell> {
           child: SizedBox.square(dimension: getCalendarCellDimension(context)));
     }
 
-    Color? textColor = getDayTextStyle(context).color;
-    if (day.status == DayStatus.unavailable) textColor = Colors.grey;
-
     BoxDecoration decoration;
     switch (day.status) {
       case DayStatus.selected:
@@ -106,12 +103,44 @@ class _CalendarCellState extends State<CalendarCell> {
             height: getCalendarCellDimension(context),
             decoration: decoration,
           ),
-          Text(
-            dayNumber.toString(),
-            style: getDayTextStyle(context).copyWith(color: textColor),
-          ),
+          if (day.status == DayStatus.unavailable)
+            _buildUnavailableDayLabel(context, dayNumber)
+          else
+            Text(
+              dayNumber.toString(),
+              style: getDayTextStyle(context),
+            ),
         ],
       ),
+    );
+  }
+
+  Widget _buildUnavailableDayLabel(BuildContext context, int dayNumber) {
+    final dayFontSize = getBaseWidth(context) / 100 * 2;
+    final crossFontSize = getBaseWidth(context) / 100 * 3;
+
+    return Stack(
+      alignment: Alignment.center,
+      clipBehavior: Clip.none,
+      children: [
+        Text(
+          dayNumber.toString(),
+          style: TextStyle(
+            fontSize: dayFontSize,
+            fontWeight: FontWeight.normal,
+            color: colorButtonDisabled,
+          ),
+        ),
+        Text(
+          '✗',
+          style: TextStyle(
+            fontSize: crossFontSize,
+            height: 1,
+            fontWeight: FontWeight.bold,
+            color: colorButtonDisabled,
+          ),
+        ),
+      ],
     );
   }
 

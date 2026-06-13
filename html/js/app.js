@@ -356,7 +356,11 @@ function renderMonth(month, year, days, isEnabled) {
           ? `<div class="${bgClass(day.position, day.status)}"></div>`
           : '';
 
-      row += `<div class="day-cell${isInteractive ? ' day-cell--interactive' : ''}" data-day="${dayNumber}">${bg}<span class="day-cell__num${unavailable ? ' day-cell__num--unavailable' : ''}">${dayNumber}</span></div>`;
+      const numHtml = unavailable
+        ? `<span class="day-cell__num day-cell__num--unavailable"><span class="day-cell__num-value">${dayNumber}</span><span class="day-cell__cross" aria-hidden="true">✗</span></span>`
+        : `<span class="day-cell__num">${dayNumber}</span>`;
+
+      row += `<div class="day-cell${isInteractive ? ' day-cell--interactive' : ''}" data-day="${dayNumber}">${bg}${numHtml}</div>`;
     }
     weeksHtml += `<div class="week">${row}</div>`;
   }
