@@ -333,6 +333,9 @@ function renderMonth(month, year, days, isEnabled) {
         d.date.getDate() === dayNum,
     );
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   let weeksHtml = '';
   for (let week = 0; week < 6; week++) {
     let row = '';
@@ -360,7 +363,11 @@ function renderMonth(month, year, days, isEnabled) {
         ? `<span class="day-cell__num day-cell__num--unavailable"><span class="day-cell__num-value">${dayNumber}</span><span class="day-cell__cross" aria-hidden="true">✗</span></span>`
         : `<span class="day-cell__num">${dayNumber}</span>`;
 
-      row += `<div class="day-cell${isInteractive ? ' day-cell--interactive' : ''}" data-day="${dayNumber}">${bg}${numHtml}</div>`;
+      const todayHtml = isSameDay(day.date, today)
+        ? '<img class="day-cell__today" src="assets/today.drawio.svg" alt="" aria-hidden="true">'
+        : '';
+
+      row += `<div class="day-cell${isInteractive ? ' day-cell--interactive' : ''}" data-day="${dayNumber}">${bg}${todayHtml}${numHtml}</div>`;
     }
     weeksHtml += `<div class="week">${row}</div>`;
   }

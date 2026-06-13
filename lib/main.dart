@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:room_ranger/utils/date_utils.dart';
 import 'package:room_ranger/utils/calendar_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -103,6 +104,8 @@ class _CalendarCellState extends State<CalendarCell> {
             height: getCalendarCellDimension(context),
             decoration: decoration,
           ),
+          if (isSameDay(day.date, DateTime.now()))
+            _buildTodayMarker(context),
           if (day.status == DayStatus.unavailable)
             _buildUnavailableDayLabel(context, dayNumber)
           else
@@ -112,6 +115,17 @@ class _CalendarCellState extends State<CalendarCell> {
             ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTodayMarker(BuildContext context) {
+    final size = getCalendarCellDimension(context);
+
+    return SvgPicture.asset(
+      'assets/today.drawio.svg',
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
     );
   }
 

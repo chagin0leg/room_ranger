@@ -53,3 +53,6 @@ String getNightWord(int count) => (count % 10 == 1 && count % 100 != 11)
             (count % 100 < 10 || count % 100 >= 20)
         ? 'ночи'
         : 'ночей';
+
+bool isSameDay(DateTime a, DateTime b) =>
+    a.year == b.year && a.month == b.month && a.day == b.day;
