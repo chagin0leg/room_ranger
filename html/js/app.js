@@ -307,11 +307,21 @@ function bgClass(position, status) {
       ? 'selected'
       : status === DayStatus.insufficientNights
         ? 'insufficient'
-        : status === DayStatus.booked
-          ? 'booked'
-          : '';
+        : '';
   if (!statusClass) return '';
   return `day-cell__bg day-cell__bg--${position} day-cell__bg--${statusClass}`;
+}
+
+/**
+ * @param {string} position
+ */
+function bookedBgHtml(position) {
+  if (position === 'middle') {
+    return '<img class="day-cell__booked day-cell__booked--fill" src="assets/fill.drawio.svg" alt="" aria-hidden="true">';
+  }
+
+  const endClass = position === 'end' ? ' day-cell__booked--end' : '';
+  return `<img class="day-cell__booked day-cell__booked--side${endClass}" src="assets/side.drawio.svg" alt="" aria-hidden="true">`;
 }
 
 /**
@@ -352,12 +362,15 @@ function renderMonth(month, year, days, isEnabled) {
         day.status !== DayStatus.booked &&
         day.status !== DayStatus.unavailable;
       const unavailable = day.status === DayStatus.unavailable;
-      const bg =
+      let bg = '';
+      if (
         day.status === DayStatus.selected ||
-        day.status === DayStatus.insufficientNights ||
-        day.status === DayStatus.booked
-          ? `<div class="${bgClass(day.position, day.status)}"></div>`
-          : '';
+        day.status === DayStatus.insufficientNights
+      ) {
+        bg = `<div class="${bgClass(day.position, day.status)}"></div>`;
+      } else if (day.status === DayStatus.booked) {
+        bg = bookedBgHtml(day.position);
+      }
 
       const numHtml = unavailable
         ? `<span class="day-cell__num day-cell__num--unavailable"><span class="day-cell__num-value">${dayNumber}</span><span class="day-cell__cross" aria-hidden="true">✗</span></span>`

@@ -26,5 +26,7 @@ flutter:
   assets:
     - assets/home.png
     - assets/today.drawio.svg
+    - assets/side.drawio.svg
+    - assets/fill.drawio.svg
     - assets/data/
     - .env

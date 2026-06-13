@@ -334,6 +334,20 @@ body {
   z-index: 1;
 }
 
+.day-cell__booked {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.day-cell__booked--end {
+  transform: rotate(180deg);
+}
+
 .day-cell__bg--single {
   border-radius: calc(var(--base-width) / 60);
 }
@@ -352,10 +366,6 @@ body {
 
 .day-cell__bg--insufficient {
   background: var(--color-insufficient);
-}
-
-.day-cell__bg--booked {
-  background: var(--color-booked);
 }
 
 .day-cell__num {

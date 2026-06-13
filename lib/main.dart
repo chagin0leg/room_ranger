@@ -12,6 +12,7 @@ import 'package:room_ranger/utils/calendar_day_service.dart';
 import 'package:room_ranger/utils/telegram_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:developer';
+import 'dart:math' show pi;
 
 // ========================================================================== //
 
@@ -87,7 +88,7 @@ class _CalendarCellState extends State<CalendarCell> {
         decoration = _getDayDecoration(day.position, colorInsufficientNights);
         break;
       case DayStatus.booked:
-        decoration = _getDayDecoration(day.position, colorBooked);
+        decoration = const BoxDecoration(color: colorTransparent);
         break;
       default:
         decoration = const BoxDecoration(
@@ -104,6 +105,8 @@ class _CalendarCellState extends State<CalendarCell> {
             height: getCalendarCellDimension(context),
             decoration: decoration,
           ),
+          if (day.status == DayStatus.booked)
+            _buildBookedMarker(context, day.position),
           if (isSameDay(day.date, DateTime.now()))
             _buildTodayMarker(context),
           if (day.status == DayStatus.unavailable)
@@ -127,6 +130,26 @@ class _CalendarCellState extends State<CalendarCell> {
       height: size,
       fit: BoxFit.contain,
     );
+  }
+
+  Widget _buildBookedMarker(BuildContext context, DayPosition position) {
+    final size = getCalendarCellDimension(context);
+    final asset = position == DayPosition.middle
+        ? 'assets/fill.drawio.svg'
+        : 'assets/side.drawio.svg';
+
+    Widget marker = SvgPicture.asset(
+      asset,
+      width: size,
+      height: size,
+      fit: BoxFit.fill,
+    );
+
+    if (position == DayPosition.end) {
+      marker = Transform.rotate(angle: pi, child: marker);
+    }
+
+    return marker;
   }
 
   Widget _buildUnavailableDayLabel(BuildContext context, int dayNumber) {
