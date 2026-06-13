@@ -56,14 +56,14 @@ function getStatusMessage() {
   if (!hasAnySelected() && !hasInsufficientNights()) return 'Выберите даты';
   if (hasInsufficientNights()) {
     const min = getMinNights();
-    return `Мин. ${min} ${getNightWord(min)}`;
+    return `Мин. ${min} ${getNightWord(min)} подряд`;
   }
   return formatAllBookingDatesText(daysByRoom);
 }
 
 function getButtonText() {
   const min = getMinNights();
-  if (hasInsufficientNights()) return `Мин. ${min} ${getNightWord(min)}  `;
+  if (hasInsufficientNights()) return `Мин. ${min} ${getNightWord(min)} подряд  `;
   if (hasAnySelected()) return 'Забронировать  ';
   return 'Задать вопрос  ';
 }

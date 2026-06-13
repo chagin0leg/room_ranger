@@ -456,7 +456,7 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
     final minNights = CalendarDayService.getMinNights();
 
     if (!hasSelected && !hasInsufficient) return 'Выберите даты';
-    if (hasInsufficient) return 'Мин. $minNights ${getNightWord(minNights)}';
+    if (hasInsufficient) return 'Мин. $minNights ${getNightWord(minNights)} подряд';
     return formatAllBookingDatesText(
       daysByRoom: widget.daysByRoom,
       selectedMonth: widget.selectedMonth,
@@ -470,7 +470,7 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
     final minNights = CalendarDayService.getMinNights();
 
     // Если есть дни с недостаточным количеством ночей, показываем это
-    if (hasInsufficient) return 'Мин. $minNights ${getNightWord(minNights)}  ';
+    if (hasInsufficient) return 'Мин. $minNights ${getNightWord(minNights)} подряд  ';
     if (hasSelected) return 'Забронировать  ';
     return 'Задать вопрос  ';
   }
