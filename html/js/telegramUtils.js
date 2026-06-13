@@ -140,8 +140,29 @@ export function buildTelegramBookingMessage(daysByRoom) {
 /** @param {string} message */
 export function sendTelegramBookingMessage(message) {
   const managerId = getTelegramManagerId();
-  const url = `https://t.me/${managerId}?text=${encodeURIComponent(message)}`;
-  window.open(url, '_blank');
+  if (!managerId) return;
+
+  const encoded = encodeURIComponent(message);
+  const webUrl = `https://t.me/${managerId}?text=${encoded}`;
+  const appUrl = `tg://resolve?domain=${encodeURIComponent(managerId)}&text=${encoded}`;
+
+  let appOpened = false;
+  const markOpened = () => {
+    appOpened = true;
+  };
+  window.addEventListener('blur', markOpened, { once: true });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') appOpened = true;
+  }, { once: true });
+
+  window.location.href = appUrl;
+
+  window.setTimeout(() => {
+    window.removeEventListener('blur', markOpened);
+    if (!appOpened) {
+      window.open(webUrl, '_blank', 'noopener,noreferrer');
+    }
+  }, 700);
 }
 
 /**
