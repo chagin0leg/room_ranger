@@ -41,23 +41,7 @@ jobs:
       - name: Build HTML calendar data
         run: node scripts/build_data.mjs
 
-      - name: Commit HTML calendar data
-        id: html_commit
-        run: |
-          git config --global user.email "action@github.com"
-          git config --global user.name "GitHub Action"
-          if git diff --quiet html/assets/data.json; then
-            echo "html_changed=false" >> $GITHUB_OUTPUT
-            echo "No changes in HTML calendar data"
-          else
-            git add html/assets/data.json
-            git commit -m "Update HTML calendar data"
-            git push origin main
-            echo "html_changed=true" >> $GITHUB_OUTPUT
-          fi
-
       - name: Deploy HTML to gh-pages-2
-        if: steps.html_commit.outputs.html_changed == 'true'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
