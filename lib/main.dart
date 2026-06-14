@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:room_ranger/utils/date_utils.dart';
 import 'package:room_ranger/utils/calendar_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -11,6 +12,7 @@ import 'package:room_ranger/utils/calendar_day_service.dart';
 import 'package:room_ranger/utils/telegram_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:developer';
+import 'dart:math' show pi;
 
 // ========================================================================== //
 
@@ -77,9 +79,6 @@ class _CalendarCellState extends State<CalendarCell> {
           child: SizedBox.square(dimension: getCalendarCellDimension(context)));
     }
 
-    Color? textColor = getDayTextStyle(context).color;
-    if (day.status == DayStatus.unavailable) textColor = Colors.grey;
-
     BoxDecoration decoration;
     switch (day.status) {
       case DayStatus.selected:
@@ -89,7 +88,7 @@ class _CalendarCellState extends State<CalendarCell> {
         decoration = _getDayDecoration(day.position, colorInsufficientNights);
         break;
       case DayStatus.booked:
-        decoration = _getDayDecoration(day.position, colorBooked);
+        decoration = const BoxDecoration(color: colorTransparent);
         break;
       default:
         decoration = const BoxDecoration(
@@ -106,12 +105,79 @@ class _CalendarCellState extends State<CalendarCell> {
             height: getCalendarCellDimension(context),
             decoration: decoration,
           ),
-          Text(
-            dayNumber.toString(),
-            style: getDayTextStyle(context).copyWith(color: textColor),
-          ),
+          if (day.status == DayStatus.booked)
+            _buildBookedMarker(context, day.position),
+          if (isSameDay(day.date, DateTime.now()))
+            _buildTodayMarker(context),
+          if (day.status == DayStatus.unavailable)
+            _buildUnavailableDayLabel(context, dayNumber)
+          else
+            Text(
+              dayNumber.toString(),
+              style: getDayTextStyle(context),
+            ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTodayMarker(BuildContext context) {
+    final size = getCalendarCellDimension(context);
+
+    return SvgPicture.asset(
+      'assets/today.drawio.svg',
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+    );
+  }
+
+  Widget _buildBookedMarker(BuildContext context, DayPosition position) {
+    final size = getCalendarCellDimension(context);
+    final asset = position == DayPosition.middle
+        ? 'assets/fill.drawio.svg'
+        : 'assets/side.drawio.svg';
+
+    Widget marker = SvgPicture.asset(
+      asset,
+      width: size,
+      height: size,
+      fit: BoxFit.fill,
+    );
+
+    if (position == DayPosition.end) {
+      marker = Transform.rotate(angle: pi, child: marker);
+    }
+
+    return marker;
+  }
+
+  Widget _buildUnavailableDayLabel(BuildContext context, int dayNumber) {
+    final dayFontSize = getBaseWidth(context) / 100 * 2;
+    final crossFontSize = getBaseWidth(context) / 100 * 3;
+
+    return Stack(
+      alignment: Alignment.center,
+      clipBehavior: Clip.none,
+      children: [
+        Text(
+          dayNumber.toString(),
+          style: TextStyle(
+            fontSize: dayFontSize,
+            fontWeight: FontWeight.normal,
+            color: colorButtonDisabled,
+          ),
+        ),
+        Text(
+          '✗',
+          style: TextStyle(
+            fontSize: crossFontSize,
+            height: 1,
+            fontWeight: FontWeight.bold,
+            color: colorButtonDisabled,
+          ),
+        ),
+      ],
     );
   }
 
@@ -456,7 +522,7 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
     final minNights = CalendarDayService.getMinNights();
 
     if (!hasSelected && !hasInsufficient) return 'Выберите даты';
-    if (hasInsufficient) return 'Мин. $minNights ${getNightWord(minNights)}';
+    if (hasInsufficient) return 'Мин. $minNights ${getNightWord(minNights)} подряд';
     return formatAllBookingDatesText(
       daysByRoom: widget.daysByRoom,
       selectedMonth: widget.selectedMonth,
@@ -470,7 +536,7 @@ class _BookingButtonContainerState extends State<BookingButtonContainer> {
     final minNights = CalendarDayService.getMinNights();
 
     // Если есть дни с недостаточным количеством ночей, показываем это
-    if (hasInsufficient) return 'Мин. $minNights ${getNightWord(minNights)}  ';
+    if (hasInsufficient) return 'Мин. $minNights ${getNightWord(minNights)} подряд  ';
     if (hasSelected) return 'Забронировать  ';
     return 'Задать вопрос  ';
   }

@@ -26,6 +26,7 @@ const Color colorTableCell = Color(0xFFfbf4e2);
 const Color colorBookingBg = Color(0xFFebeed3);
 const Color colorButtonBg = Color(0xFFd2dfb3);
 const Color colorButtonFg = Color(0xFF4a4b4d);
+const Color colorButtonDisabled = Color(0x4C4A4B4D);
 
 // Функции для стилей текста
 TextStyle getMonthTextStyle(BuildContext context) => TextStyle(

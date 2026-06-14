@@ -56,14 +56,14 @@ function getStatusMessage() {
   if (!hasAnySelected() && !hasInsufficientNights()) return 'Выберите даты';
   if (hasInsufficientNights()) {
     const min = getMinNights();
-    return `Мин. ${min} ${getNightWord(min)}`;
+    return `Мин. ${min} ${getNightWord(min)} подряд`;
   }
   return formatAllBookingDatesText(daysByRoom);
 }
 
 function getButtonText() {
   const min = getMinNights();
-  if (hasInsufficientNights()) return `Мин. ${min} ${getNightWord(min)}  `;
+  if (hasInsufficientNights()) return `Мин. ${min} ${getNightWord(min)} подряд  `;
   if (hasAnySelected()) return 'Забронировать  ';
   return 'Задать вопрос  ';
 }
@@ -307,11 +307,21 @@ function bgClass(position, status) {
       ? 'selected'
       : status === DayStatus.insufficientNights
         ? 'insufficient'
-        : status === DayStatus.booked
-          ? 'booked'
-          : '';
+        : '';
   if (!statusClass) return '';
   return `day-cell__bg day-cell__bg--${position} day-cell__bg--${statusClass}`;
+}
+
+/**
+ * @param {string} position
+ */
+function bookedBgHtml(position) {
+  if (position === 'middle') {
+    return '<img class="day-cell__booked day-cell__booked--fill" src="assets/fill.drawio.svg" alt="" aria-hidden="true">';
+  }
+
+  const endClass = position === 'end' ? ' day-cell__booked--end' : '';
+  return `<img class="day-cell__booked day-cell__booked--side${endClass}" src="assets/side.drawio.svg" alt="" aria-hidden="true">`;
 }
 
 /**
@@ -333,6 +343,9 @@ function renderMonth(month, year, days, isEnabled) {
         d.date.getDate() === dayNum,
     );
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   let weeksHtml = '';
   for (let week = 0; week < 6; week++) {
     let row = '';
@@ -349,14 +362,25 @@ function renderMonth(month, year, days, isEnabled) {
         day.status !== DayStatus.booked &&
         day.status !== DayStatus.unavailable;
       const unavailable = day.status === DayStatus.unavailable;
-      const bg =
+      let bg = '';
+      if (
         day.status === DayStatus.selected ||
-        day.status === DayStatus.insufficientNights ||
-        day.status === DayStatus.booked
-          ? `<div class="${bgClass(day.position, day.status)}"></div>`
-          : '';
+        day.status === DayStatus.insufficientNights
+      ) {
+        bg = `<div class="${bgClass(day.position, day.status)}"></div>`;
+      } else if (day.status === DayStatus.booked) {
+        bg = bookedBgHtml(day.position);
+      }
 
-      row += `<div class="day-cell${isInteractive ? ' day-cell--interactive' : ''}" data-day="${dayNumber}">${bg}<span class="day-cell__num${unavailable ? ' day-cell__num--unavailable' : ''}">${dayNumber}</span></div>`;
+      const numHtml = unavailable
+        ? `<span class="day-cell__num day-cell__num--unavailable"><span class="day-cell__num-value">${dayNumber}</span><span class="day-cell__cross" aria-hidden="true">✗</span></span>`
+        : `<span class="day-cell__num">${dayNumber}</span>`;
+
+      const todayHtml = isSameDay(day.date, today)
+        ? '<img class="day-cell__today" src="assets/today.drawio.svg" alt="" aria-hidden="true">'
+        : '';
+
+      row += `<div class="day-cell${isInteractive ? ' day-cell--interactive' : ''}" data-day="${dayNumber}">${bg}${todayHtml}${numHtml}</div>`;
     }
     weeksHtml += `<div class="week">${row}</div>`;
   }
