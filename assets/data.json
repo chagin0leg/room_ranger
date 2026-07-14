@@ -164,156 +164,6 @@
         "discount": 10,
         "currency": "₽"
       },
-      "2026-06-01": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-02": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-03": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-04": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-05": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-06": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-07": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-08": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-09": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-10": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-11": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-12": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-13": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-14": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-15": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-16": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-17": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-18": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-19": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-20": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-21": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-22": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-23": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-24": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-25": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-26": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-27": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-28": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-29": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2026-06-30": {
-        "price": 3000,
-        "discount": 10,
-        "currency": "₽"
-      },
       "2025-09-01": {
         "price": 2700,
         "discount": 10,
@@ -461,6 +311,616 @@
       },
       "2025-09-30": {
         "price": 2700,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-01": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-02": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-03": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-04": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-05": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-06": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-07": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-08": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-09": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-10": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-11": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-12": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-13": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-14": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-15": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-16": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-17": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-18": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-19": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-20": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-21": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-22": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-23": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-24": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-25": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-26": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-27": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-28": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-29": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-30": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-10-31": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-01": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-02": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-03": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-04": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-05": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-06": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-07": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-08": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-09": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-10": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-11": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-12": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-13": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-14": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-15": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-16": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-17": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-18": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-19": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-20": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-21": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-22": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-23": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-24": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-25": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-26": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-27": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-28": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-29": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-11-30": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-01": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-02": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-03": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-04": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-05": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-06": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-07": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-08": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-09": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-10": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-11": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-12": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-13": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-14": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-15": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-16": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-17": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-18": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-19": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-20": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-21": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-22": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-23": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-24": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-25": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-26": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-27": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-28": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-29": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-30": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2025-12-31": {
+        "price": 2000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-01": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-02": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-03": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-04": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-05": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-06": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-07": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-08": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-09": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-10": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-11": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-12": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-13": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-14": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-15": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-16": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-17": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-18": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-19": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-20": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-21": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-22": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-23": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-24": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-25": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-26": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-27": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-28": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-29": {
+        "price": 3000,
+        "discount": 10,
+        "currency": "₽"
+      },
+      "2026-06-30": {
+        "price": 3000,
         "discount": 10,
         "currency": "₽"
       },
@@ -1076,466 +1536,6 @@
       },
       "2026-07-31": {
         "price": 3200,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-01": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-02": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-03": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-04": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-05": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-06": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-07": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-08": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-09": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-10": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-11": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-12": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-13": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-14": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-15": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-16": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-17": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-18": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-19": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-20": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-21": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-22": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-23": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-24": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-25": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-26": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-27": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-28": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-29": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-30": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-10-31": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-01": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-02": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-03": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-04": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-05": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-06": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-07": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-08": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-09": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-10": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-11": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-12": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-13": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-14": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-15": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-16": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-17": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-18": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-19": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-20": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-21": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-22": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-23": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-24": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-25": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-26": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-27": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-28": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-29": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-11-30": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-01": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-02": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-03": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-04": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-05": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-06": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-07": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-08": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-09": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-10": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-11": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-12": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-13": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-14": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-15": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-16": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-17": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-18": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-19": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-20": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-21": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-22": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-23": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-24": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-25": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-26": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-27": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-28": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-29": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-30": {
-        "price": 2000,
-        "discount": 10,
-        "currency": "₽"
-      },
-      "2025-12-31": {
-        "price": 2000,
         "discount": 10,
         "currency": "₽"
       }
